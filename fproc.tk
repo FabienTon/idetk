@@ -1,0 +1,160 @@
+# Form Procedures
+
+proc fproc { } {
+global idproj
+if {[winfo exist .b] == 1} {
+
+pack [frame .b.l ] -fill y -side left
+# Add small toolbar for procedure
+pack [frame .b.l.tb] -fill x
+pack [button .b.l.tb.bt0 -image iadd -command Proc_Badd_Click] -side left -fill y
+pack [button .b.l.tb.bt -image iedit -command Proc_Brename_Click] -side left -fill y
+pack [button .b.l.tb.bt2 -image idel -command Proc_Bdel_Click] -side left -fill y
+
+pack [frame .b.r -bg #000000] -fill both -expand 1 -side right ; # right frame for editor
+
+pack [scrollbar .b.l.scv -command ".b.l.tv0 yview"] -side right -fill y
+pack [ttk::treeview .b.l.tv0 -selectmode extended -yscrollcommand ".b.l.scv set"] -fill both -side left -expand 1
+.b.l.tv0 column #0 -anchor center
+.b.l.tv0 heading #0 -text "Procedures"
+.b.l.tv0 tag bind ttk <1> {global idproc procname ; set idproc [.b.l.tv0 identify item %x %y] ; set procname [.b.l.tv0 item $idproc -text]}
+.b.l.tv0 tag bind ttk <Double-1> {destroy .b.r.editor ; destroy .b.r.t ; destroy .b.r.scroll ; Load_Proc_In_Edit}
+set sql  "select * from procedure WHERE idproj='$idproj'"
+Refresh_Proc_List
+}
+}
+
+# Clic on Add procedure button
+proc Proc_Badd_Click { } {
+if {[winfo exist ._faddproc] == 1} {destroy ._faddproc}
+global groups
+toplevel ._faddproc ; wm title ._faddproc "Add procedure"
+wm geometry ._faddproc +250+130
+pack [ttk::notebook ._faddproc.nb ] -fill both -expand 1 -padx 5 -pady 5
+ttk::frame ._faddproc.nb.tab1 ; ._faddproc.nb add ._faddproc.nb.tab1 -text "Add Procedure" -image iproc -compound left
+# Fields
+pack [labelframe ._faddproc.nb.tab1.lb0 -text " Procedure name "] -fill x
+pack [entry ._faddproc.nb.tab1.lb0.name] -fill x
+
+pack [labelframe ._faddproc.nb.tab1.lb1 -text " Procedure argument (separate by spaces) "] -fill x
+pack [entry ._faddproc.nb.tab1.lb1.arg] -fill x
+
+# Buttons
+pack [frame ._faddproc.bottom] -fill x
+pack [button ._faddproc.bottom.bok -text "Ok" -image ivalid -compound left -command Proc_Bok_Click] -side right
+pack [button ._faddproc.bottom.bcancel -text "Cancel" -image iquit -compound left -command { destroy ._faddproc}] -side right
+focus ._faddproc.nb.tab1.lb0.name
+}
+
+# Click on button Ok in new procedure form
+proc Proc_Bok_Click {} {
+set nameproc [._faddproc.nb.tab1.lb0.name get]
+if {[llength $nameproc] == 0} {tk_messageBox -type ok -icon warning -title "No name" -message "Procedure name is required to continu !"} {Bdd_Add_Proc}
+}
+
+# Add new procedure in database
+proc Bdd_Add_Proc {} {
+global idproj
+set myname [._faddproc.nb.tab1.lb0.name get]
+set myargs [._faddproc.nb.tab1.lb1.arg get]
+set mycode "proc $myname \x7B $myargs \x7D \x7B \n\n \x7D"
+sqlite3 db1 "./db/code.db"
+db1 eval { INSERT INTO procedure ("name","procedurecode","argument","idproj") VALUES ($myname,$mycode,$myargs,$idproj) }
+db1 close
+after 150
+Refresh_Proc_List
+destroy ._faddproc
+}
+
+# Refresh procedures list
+proc Refresh_Proc_List {} {
+global projname idproj
+set db "./db/code.db" ; sqlite3 db1 $db ; global groups
+.b.l.tv0 delete [.b.l.tv0 children {}]
+set mysql "SELECT * from procedure WHERE idproj=$idproj"
+db1 eval $mysql { .b.l.tv0 insert {} end -id $id -text $name -image iproc -tags ttk }
+db1 close
+wm title . "Current project : $projname"
+}
+
+# Load procedure code in editor
+proc Load_Proc_In_Edit {} {
+global procname idproc
+set procname [.b.l.tv0 item $idproc -text]
+Form_Editor
+.b.r.editor delete 0.0 end
+.b.r.editor insert end [Put_Proc_In_Editor $idproc]
+colorize .b.r.editor 0.0
+}
+
+proc Put_Proc_In_Editor {myid} {
+sqlite3 db1 "./db/code.db"
+set sql {SELECT * FROM procedure WHERE id = $myid}
+set m [db1 eval $sql { set mycode $procedurecode } ]
+return $mycode
+db1 close	
+}
+
+proc Proc_Add_Main_procedure { from } {
+global idproj
+set myname "."
+set myargs ""
+set mycode [Type_of_Project $from]
+sqlite3 db1 "./db/code.db"
+db1 eval { INSERT INTO procedure ("name","procedurecode","argument","idproj") VALUES ($myname,$mycode,$myargs,$idproj) }
+db1 close
+after 300
+fproc
+}
+
+proc Type_of_Project {mytype} {
+switch $mytype {
+	"Console Tcl only" {return "\x23 Tcl main procedure \n"}
+	"Graphic Tk" {return "package require Tk\n\x23 Main procedure \n"}
+	"Graphic Tk sqlite3" {return "package require Tk\npackage require sqlite3\n\x23 Main procedure \n"}
+	"Tix and Tk" {return "package require Tk\npackage require Tix\n\x23 Main procedure \n"}
+	"Other" {return "\x23 Write what package require your project here\n \x23 Main procedure \n"}	
+}
+}
+
+
+# Event click Remove procedure
+proc Proc_Bdel_Click {} {
+global procname idproc
+set answer [tk_messageBox -type yesno -icon question -title "Remove procedure?" -message "Are you sure to remove procedure named $procname ?"]
+if {$answer == yes} { sqlite3 db1 "./db/code.db" ; db1 eval { DELETE FROM procedure WHERE id = $idproc }
+	db1 close
+	after 300
+	Form_Procedures }
+}
+
+proc Proc_Brename_Click {} {
+global procname idproc
+if {[winfo exist .fren] == 0} {
+toplevel .fren
+wm title .fren "Rename procedure"
+wm iconphoto .fren igrouprename
+pack [label .fren.icon -image igrouprename]
+pack [frame .fren.f0] -fill x
+pack [label .fren.f0.l -text "Current name: "] -side left
+pack [entry .fren.f0.e ] -fill x
+pack [frame .fren.f1] -fill x
+pack [label .fren.f1.l -text "New name: "] -side left
+pack [entry .fren.f1.e ] -fill x
+pack [frame .fren.f2 -bd 1 -relief raised] -fill x -side bottom
+pack [button .fren.f2.bok -text "Valid" -command { Bdd_Edit-Proc ; Refresh_Proc_List ;  destroy .fren}] -side right
+pack [button .fren.f2.bcancel -text "Cancel" -command {destroy .fren}] -side right
+.fren.f0.e delete 0 end
+.fren.f0.e insert end $procname
+focus .fren.f1.e
+}
+}
+
+proc Bdd_Edit-Proc {} {
+global idproj idproc procname
+set procname [.fren.f1.e get]
+set db "./db/code.db"
+sqlite3 db1 $db
+db1 eval { UPDATE procedure SET "idproj" = $idproj,"name" = $procname,  "argument" = "" WHERE "id" = $idproc}
+db1 close
+}

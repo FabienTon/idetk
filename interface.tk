@@ -1,0 +1,255 @@
+# Interface maker fir IDE tk
+# Made by Fabien Mai 2025
+# Tk widgets
+package require Tk
+
+
+# Form widgets hierarchy
+proc Form_Scenario {} {
+if {[winfo exist .r.fs] == 1} {destroy .r.fs}
+ttk::frame .r.fs ; .r add .r.fs -text "Interface"
+pack [frame .r.fs.frm -padx 30 -pady 30 -bg #101010] -fill both -expand 1
+pack [label .r.fs.frm.title -text "Create interface block to reuse in your program" -anchor center -bg #2F4380 -fg #FFFFFF] -fill x
+
+Show_Scenario_Menu ;  # Menu on the top of form
+Show_Scenario_List ; # List of scenario available
+Show_Scenario_Details ; # Scenario parameter
+Scenario_Refresh_List
+}
+
+# Make Menu toolbar
+proc Show_Scenario_Menu {} {
+pack [frame .r.fs.frm.f] -fill x
+pack [menubutton .r.fs.frm.f.mb -image imenu -text "menu" -compound left -menu .r.fs.frm.f.mb.m -relief raised] -side left
+menu .r.fs.frm.f.mb.m -tearoff 0
+.r.fs.frm.f.mb.m add command -label "Add new scenario" -image iadd -compound left -command Click_Add_Scenario
+.r.fs.frm.f.mb.m add command -label "Modify selected scenario" -image iedit -compound left -command Click_Edit_Scenario
+.r.fs.frm.f.mb.m add command -label "Delete selected scenario" -image idel -compound left -command Click_Delete_Scenario
+.r.fs.frm.f.mb.m add separator
+.r.fs.frm.f.mb.m add command -label "Help me..." -image ihelp -compound left
+.r.fs.frm.f.mb.m add separator
+.r.fs.frm.f.mb.m add command -label "Quit and close designer" -image iquit -compound left -command {destroy .r.fs.frm}
+pack [label .r.fs.frm.f.sep0] -side left
+pack [entry .r.fs.frm.f.find] -fill both -expand 1 -side left ; # Find text in descrition
+pack [label .r.fs.frm.f.sep1] -side left
+pack [button .r.fs.frm.f.bclose -text "Close" -image iquit -compound left -command {destroy .r.fs.frm}] -side right
+}
+
+
+
+# ################### ADD WIDGET TO PROJECT ############################
+# Double click on Widgets treeview to add widget in bdd
+proc Db_Click_Tv_Widgets {idx} {
+global idproj idproc procname projname; puts "$idproj &idproc $projname procname"
+# test si je clique sur 
+# Si c'est la procedure main, on cree un widget de type form
+
+}
+
+
+# ####################### DESIGN INTERFACE ############################
+
+# Make myproject widgets list
+proc Show_Scenario_List {} {
+pack [frame .r.fs.frm.lft] -fill both -side left -padx 3 -pady 3
+pack [ttk::treeview .r.fs.frm.lft.tv0] -fill both -expand 1 -padx 7 -pady 7 ; # widget treeview
+.r.fs.frm.lft.tv0 heading #0 -text "Scenarios" -anchor center
+pack [label .r.fs.frm.lft.sep2] -fill x ; # separator
+.r.fs.frm.lft.tv0 tag bind ttk <1> {global idscenario ; set idscenario [.r.fs.frm.lft.tv0 identify item %x %y] ; Click_On_Scenario $idscenario}
+}
+
+# Make Notebook for widgets with categories
+proc Show_Scenario_Details {} {
+pack [frame .r.fs.frm.r] -fill x -side left -padx 5 -pady 5
+
+pack [ttk::notebook .r.fs.frm.r.nb ] -fill both -expand 1 -padx 5 -pady 5
+ttk::frame .r.fs.frm.r.nb.tb1 ; .r.fs.frm.r.nb add .r.fs.frm.r.nb.tb1 -text "Description" -image iinfo -compound left
+pack [frame .r.fs.frm.r.nb.tb1.lft] -fill both -side left -padx 5 -pady 5 -expand 1
+pack [label .r.fs.frm.r.nb.tb1.lft.title0 -text " Scenario Name " -anchor center -bg #101010 -fg #FFFFFF] -fill x
+pack [entry .r.fs.frm.r.nb.tb1.lft.name ] -fill x -padx 5
+pack [label .r.fs.frm.r.nb.tb1.lft.sep00 ] -fill x
+pack [label .r.fs.frm.r.nb.tb1.lft.title2 -text " Description " -anchor center -bg #101010 -fg #FFFFFF] -fill x
+pack [button .r.fs.frm.r.nb.tb1.lft.paste -state disabled -text "Paste description" -command Click_Paste_Description_Button] -fill x
+pack [text .r.fs.frm.r.nb.tb1.lft.desc -height 10] -fill both -padx 2 -pady 2
+
+pack [frame .r.fs.frm.r.nb.tb1.rgt] -fill both -side left -padx 5 -pady 5 -expand 1
+pack [label .r.fs.frm.r.nb.tb1.rgt.title2 -text " Preview " -anchor center -bg #101010 -fg #FFFFFF] -fill x
+pack [button .r.fs.frm.r.nb.tb1.rgt.paste -state disabled -text "Paste image"] -fill x
+pack [label .r.fs.frm.r.nb.tb1.rgt.pict] -fill both
+pack [label .r.fs.frm.r.nb.tb1.rgt.sep3] -fill both -expand 1
+
+ttk::frame .r.fs.frm.r.nb.tb2 ; .r.fs.frm.r.nb add .r.fs.frm.r.nb.tb2 -text "Code" -image igeneratecode -compound left
+pack [label .r.fs.frm.r.nb.tb2.title1 -text " Code " -anchor center -bg #101010 -fg #FFFFFF] -fill x
+pack [button .r.fs.frm.r.nb.tb2.paste -state disabled -text "Paste code" -command Click_Paste_Code_Button] -fill x
+pack [text .r.fs.frm.r.nb.tb2.code ] -fill both -padx 2 -pady 2
+
+# notebook for myproject
+pack [ttk::notebook .r.fs.frm.r.nbp ] -fill both -expand 1 -padx 5 -pady 5
+ttk::frame .r.fs.frm.r.nbp.tab1 ; .r.fs.frm.r.nbp add .r.fs.frm.r.nbp.tab1 -text "My procedure" -image iproc -compound left
+
+pack [label .r.fs.frm.r.nbp.tab1.title0 -text "Write full pathname of your container:" -anchor w] -fill x -padx 5
+pack [entry .r.fs.frm.r.nbp.tab1.parent ] -fill x -padx 6
+pack [frame .r.fs.frm.r.nbp.tab1.fr1 ] -fill x -padx 6
+pack [button .r.fs.frm.r.nbp.tab1.fr1.bok -text "Insert code" -command Click_Insert_Code_Button] -side right
+pack [button .r.fs.frm.r.nbp.tab1.fr1.bcancel -text "Cancel" -command {destroy .r.fs}] -side right
+
+# Show preview on the right side
+pack [frame .r.fs.frm.rgt] -fill both -side left -padx 2 -pady 2 -expand 1
+.r select .r.fs
+}
+
+# Click on insert code button
+proc Click_Insert_Code_Button {} {
+.edt.ihm.editor insert [.edt.ihm.editor index insert] [.r.fs.frm.r.nb.tb2.code get 0.0 end]
+destroy .r.fs.frm
+}
+
+# Refresh Myproject widgets list
+proc Scenario_Refresh_List {} {
+global procname
+set sql "SELECT * from scenario"
+sqlite3 db1 "./db/code.db"
+.r.fs.frm.lft.tv0 delete [.r.fs.frm.lft.tv0 children {}]
+db1 eval $sql { .r.fs.frm.lft.tv0 insert {} end -id $id -text "$name" -tags ttk}
+db1 close
+}
+
+
+# Click event on one widget button to insert
+proc Click_On_Scenario {myid} {
+sqlite3 db1 "./db/code.db"
+set sql "SELECT * FROM scenario WHERE id='$myid'"
+
+db1 eval $sql {
+	.r.fs.frm.r.nb.tb1.lft.name delete 0 end
+	.r.fs.frm.r.nb.tb1.lft.name insert end $name
+	.r.fs.frm.r.nb.tb2.code delete 0.0 end
+	.r.fs.frm.r.nb.tb2.code insert end $code
+	image create photo mypreview -data "$preview"
+	.r.fs.frm.r.nb.tb1.rgt.pict configure -image mypreview
+	.r.fs.frm.r.nb.tb1.lft.desc delete 0.0 end
+	.r.fs.frm.r.nb.tb1.lft.desc insert end $description
+	}
+db1 close
+}
+
+
+# Prepare interface to add mode
+proc Click_Add_Scenario {} {
+global wms ; set wms 1
+.r.fs.frm.r.nb.tb2.code delete 0.0 end
+.r.fs.frm.r.nb.tb1.lft.name delete 0 end
+.r.fs.frm.r.nb.tb1.lft.desc delete 0.0 end
+.r.fs.frm.r.nb.tb1.lft.paste configure -state normal
+.r.fs.frm.r.nb.tb1.rgt.paste configure -state normal
+.r.fs.frm.r.nb.tb2.paste configure -state normal
+.r.fs.frm.r.nb.tb1.rgt.pict configure -image ""
+pack [button .r.fs.frm.f.bsave -text "Save new scenario" -image isave -compound left -command Click_Save_Button] -side right
+focus .r.fs.frm.r.nb.tb1.lft.name
+}
+
+# Prepare interface to edit mode
+proc Click_Edit_Scenario {} {
+global wms ; set wms 2
+pack [button .r.fs.frm.f.bsave -text "Save Modification" -image isave -compound left -command Click_Save_Button] -side right
+}
+
+# Delete widget from database in code.db
+proc Click_Delete_Scenario {} {
+global idscenario
+sqlite3 db1 "./db/code.db"
+db1 eval { DELETE FROM scenario WHERE id = $idscenario }
+db1 close
+after 200
+Scenario_Refresh_List
+}
+
+# Toplevel configuration form
+proc Config_Widget_Toplevel {} {
+if {[winfo exist ._cwtl] == 0} {
+toplevel ._cwtl 
+wm title ._cwtl "toplevel"
+wm geometry ._cwtl 400x300
+pack [ttk::notebook ._cwtl.nb ] -fill both -expand 1 -padx 5 -pady 5
+
+ttk::frame ._cwtl.nb.tb0 ; ._cwtl.nb add ._cwtl.nb.tb0 -text "general" -image wdtoplevel -compound left		
+pack [labelframe ._cwtl.nb.tb0.lf0 -text " Toplevel name" ] -fill both -expand 1 -padx 5 -pady 5
+pack [entry ._cwtl.nb.tb0.lf0.name ] -fill x -expand 1
+
+pack [labelframe ._cwtl.nb.tb0.lf1 -text " border " ] -fill both -expand 1 -padx 5 -pady 5
+pack [checkbutton ._cwtl.nb.tb0.lf1.blocx -text "No resizable X size" ] -fill x
+pack [checkbutton ._cwtl.nb.tb0.lf1.blocy -text "No resizable Y size" ] -fill x
+
+
+ttk::frame ._cwtl.nb.tb ; ._cwtl.nb add ._cwtl.nb.tb -text "toplevel" -image wdtoplevel -compound left		
+pack [labelframe ._cwtl.nb.tb.lf0 -text " geometry " ] -fill both -expand 1 -padx 5 -pady 5
+pack [label ._cwtl.nb.tb.lf0.msg -text "! Move and resize toplevel !" -bg #101010 -fg #FFFFFF] -fill x -padx 6
+pack [frame ._cwtl.nb.tb.lf0.fr0] -fill x
+pack [label ._cwtl.nb.tb.lf0.fr0.l0 -text "placement X :"] -side left -expand 1 -fill x
+pack [entry ._cwtl.nb.tb.lf0.fr0.x ] -side left -fill x
+pack [frame ._cwtl.nb.tb.lf0.fr1] -fill x
+pack [label ._cwtl.nb.tb.lf0.fr1.l1 -text "placement Y :"]  -side left -expand 1 -fill x
+pack [entry ._cwtl.nb.tb.lf0.fr1.y ] -side left -fill x
+pack [frame ._cwtl.nb.tb.lf0.fr2] -fill x
+pack [label ._cwtl.nb.tb.lf0.fr2.l1 -text "  Size with :"]  -side left -expand 1 -fill x
+pack [entry ._cwtl.nb.tb.lf0.fr2.w ] -side left -fill x
+pack [frame ._cwtl.nb.tb.lf0.fr3] -fill x
+pack [label ._cwtl.nb.tb.lf0.fr3.l1 -text "Size height :"]  -side left -expand 1 -fill x
+pack [entry ._cwtl.nb.tb.lf0.fr3.h ] -side left -fill x
+
+ttk::frame ._cwtl.nb.tb1 ; ._cwtl.nb add ._cwtl.nb.tb1 -text "Appearance" -image wdtoplevel -compound left		
+pack [labelframe ._cwtl.nb.tb1.lf1 -text " Appearance " ] -fill both -expand 1 -padx 5 -pady 5
+			
+pack [frame ._cwtl.bottom ] -fill x
+pack [button ._cwtl.bottom.bok -text "Ok" -image ivalid -compound left -command {destroy ._cwtl}] -side right -padx 5 -pady 5
+}
+}
+
+# Properties Form of selected widget
+proc Form_Properties {mywidget} {
+}
+
+# Click on Save modifications button
+proc Click_Save_Button {} {
+# modification of database and unpack button save
+global wms
+switch $wms {
+	1 {Bdd_Add_Scenario}
+	2 {}
+}
+.r.fs.frm.r.nb.tb1.lft.paste configure -state disabled
+.r.fs.frm.r.nb.tb1.rgt.paste configure -state disabled
+.r.fs.frm.r.nb.tb2.paste configure -state disabled
+destroy .r.fs.frm.f.bsave
+}
+
+# Add new scenario in database
+proc Bdd_Add_Scenario {} {
+global pictscenario
+sqlite3 db1 "./db/code.db"
+set mydesc [.r.fs.frm.r.nb.tb1.lft.desc get 0.0 end]
+set mycode [.r.fs.frm.r.nb.tb2.code get 0.0 end]
+set myname [.r.fs.frm.r.nb.tb1.lft.name get]
+db1 eval {INSERT INTO scenario ("name","description","code","preview") \
+		VALUES ($myname,$mydesc,$mycode,$pictscenario) }
+db1 close
+after 300
+Scenario_Refresh_List	
+}
+
+# click on paste description button
+proc Click_Paste_Description_Button {} {
+.r.fs.frm.r.nb.tb1.lft.desc insert end [clipboard get]
+}
+
+# click on paste code button
+proc Click_Paste_Code_Button {} {
+.r.fs.frm.r.nb.tb2.code insert end [clipboard get]
+}
+
+# click on paste code button
+proc Click_Paste_Image_Button {} {
+global pictscenario
+image create photo img -data "[clipboard get]"
+.r.fs.frm.r.nb.tb1.rgt.pict configure -image img
+}

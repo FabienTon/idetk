@@ -1,0 +1,105 @@
+# Example database to learn Tcl Tk language
+
+proc Form_Example {} {
+if {[winfo exist .r.ex] == 1} {destroy .r.ex}
+ttk::frame .r.ex ; .r add .r.ex -text "Code example"
+pack [frame .r.ex.frm -padx 30 -pady 30 -bg #101010] -fill both -expand 1
+pack [label .r.ex.frm.title -text "Write your memotechnic small codes to remember quickly Tcl Tk Language" -anchor center -bg #2F4380 -fg #FFFFFF] -fill x
+pack [frame .r.ex.frm.tb] -fill x
+pack [label .r.ex.frm.tb.title -text "Search keyword: " ] -fill both -side left
+pack [entry .r.ex.frm.tb.find  ] -fill both -expand 1 -side left
+pack [button .r.ex.frm.tb.bcopy -text "Copy code\n in clipboard" -image icopy -compound left -command Click_Copy_Clipboard] -fill both -side left
+pack [button .r.ex.frm.tb.bclose -text "Close" -image iquit -compound left -command {destroy .r.ex} ] -fill both -side left
+# Body frame
+pack [frame .r.ex.frm.body ] -fill both -expand 1
+# Code list on the left
+pack [frame .r.ex.frm.body.l] -fill y -side left
+
+pack [label .r.ex.frm.body.l.title -text "List of examples\n(Double click to load)" -bg #101010 -fg #FFFFFF] -fill x -padx 5 -pady 5
+pack [ttk::treeview .r.ex.frm.body.l.tv0 ] -fill both -expand 1 -padx 5 -pady 5
+.r.ex.frm.body.l.tv0 column #0 -anchor center
+.r.ex.frm.body.l.tv0 heading #0 -text "Examples list"
+pack [button .r.ex.frm.body.l.bdel -text "Delete example" -image idel -compound left -command {
+	Example_Delete_Database} ]
+pack [frame .r.ex.frm.body.r] -fill both -expand 1 -side left
+pack [label .r.ex.frm.body.r.title -text "Code" -bg #101010 -fg #FFFFFF] -fill x -padx 5 -pady 5
+pack [frame .r.ex.frm.body.r.tb] -fill x
+pack [button .r.ex.frm.body.r.tb.badd -text "add new example" -image iadd -compound left -command Example_Add_Database] -side left
+pack [button .r.ex.frm.body.r.tb.brun -text "Try code" -image irun -compound left -command Example_Execute_Code] -fill both -side left
+pack [button .r.ex.frm.body.r.tb.bpaste -text "Paste code" -image ipaste -compound left -command Example_Clipboard_Paste] -side left
+pack [text .r.ex.frm.body.r.code] -fill both -expand 1
+set sql "SELECT * FROM example" 
+Example_Refresh_List $sql
+
+# Changing text in find entry
+bind .r.ex.frm.tb.find  <Key> { 	set mysql [join [list {SELECT * FROM example WHERE code LIKE } '\x25[.r.ex.frm.tb.find get] \x25'] ""]
+	Example_Refresh_List $mysql }
+	
+.r.ex.frm.body.l.tv0 tag bind ttk <1> { global idexample ; set idexample [.r.ex.frm.body.l.tv0 identify item %x %y] ; Example_Load_Code $idexample}
+focus .r.ex.frm.tb.find
+.r select .r.ex
+}
+
+# Load Example database
+proc Example_Refresh_List {sql} {
+sqlite3 db1 "./db/code.db"
+.r.ex.frm.body.l.tv0 delete [.r.ex.frm.body.l.tv0 children {}]
+db1 eval $sql {
+	.r.ex.frm.body.l.tv0 insert {} end -id $id -text "Example $id" -image igroup -tags ttk
+	}
+db1 close
+}
+
+# Paste code from clipboard
+proc Example_Clipboard_Paste {} {
+.r.ex.frm.body.r.code delete 0.0 end
+.r.ex.frm.body.r.code insert end [clipboard get]
+}
+
+# Add example in database
+proc Example_Add_Database {} {
+sqlite3 db1 "./db/code.db"
+set mycode [ .r.ex.frm.body.r.code get 0.0 end]
+db1 eval { INSERT INTO example ("code") VALUES ($mycode) }
+db1 close
+after 150
+set sql "SELECT * FROM example" 
+Example_Refresh_List $sql
+.r.ex.frm.body.r.code delete 0.0 end
+}
+
+# Execute code 
+proc Example_Execute_Code {} {
+set mycode [ .r.ex.frm.body.r.code get 0.0 end]
+set myfile [open "./tmp.tk" "w"]
+puts $myfile $mycode
+close $myfile
+set myproc [exec "wish" "./tmp.tk" "&"]
+}
+
+# Delete example from database
+proc Example_Delete_Database {} {
+global idexample
+set answer [tk_messageBox -type yesno -icon question -title "Remove example?" -message "Are you sure to remove selected example ?"]
+if {$answer == yes} { sqlite3 db1 "./db/code.db" ; db1 eval { DELETE FROM example WHERE id = $idexample }
+	db1 close
+	after 300
+	set sql "SELECT * FROM example"
+	Example_Refresh_List $sql }
+}
+
+# Load code from database
+proc Example_Load_Code {idx} {
+sqlite3 db1 "./db/code.db"
+set sql "SELECT * FROM example WHERE id=$idx" 
+.r.ex.frm.body.r.code delete 0.0 end
+db1 eval $sql { .r.ex.frm.body.r.code insert end $code }
+db1 close
+}
+
+# Click on button copy to clipboard
+proc Click_Copy_Clipboard {} {
+set mycode [ .r.ex.frm.body.r.code get 0.0 end]
+clipboard clear
+clipboard append $mycode
+}

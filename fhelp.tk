@@ -1,0 +1,3 @@
+proc fhelp {} {
+tk_messageBox -type ok -icon info -title "Function not implemented" -message "Programming in progress\n Function not implemented for the moment.\nSorry !"
+}

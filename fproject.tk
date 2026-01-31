@@ -1,0 +1,123 @@
+# Form Project manager
+
+
+proc Form_Project_Open {} {
+if {[winfo exist .fproj] == 0} {
+toplevel .fproj
+wm title .fproj "Manage Idetk project"
+wm geometry .fproj 600x600+150+30
+pack [frame .fproj.tb -bg #0b3210] -fill x
+pack [button .fproj.tb.bt0 -text "New\nproject" -image iadd -compound left -command {fdetail 1 ; destroy .fproj}] -fill y -side left
+pack [button .fproj.tb.bt2 -text "Delete" -image idel -compound left -command Project_Bdel_Click] -fill y  -side left
+pack [button .fproj.tb.bt6 -text "close" -image iquit -compound left -command {destroy .fproj}] -fill y  -side right
+pack [frame .fproj.tb1 -bg #296133] -fill both
+pack [label .fproj.tb1.logo -image img  -bg #296133] -padx 5 -pady 5
+pack [label .fproj.title1 -text "List of projects available (Double click to open)" -font "System 10" -bg #0b3210 -fg #FFFFFF] -fill x
+pack [frame .fproj.body ] -fill both -expand 1 -side left
+pack [scrollbar .fproj.body.scv -command ".fproj.body.tv1 yview"] -side right -fill y
+pack [ttk::treeview .fproj.body.tv1 -columns "A B" -displaycolumns "A B" \
+			-selectmode extended -yscrollcommand ".fproj.body.scv set"] -fill both -side left -expand 1
+set col [list 0 1 2] ; set nam [list "name" "description" "version"]
+
+foreach w $col {
+	.fproj.body.tv1 column #$w -anchor center
+	.fproj.body.tv1 heading #$w -text [lindex $nam $w]
+	}	
+Project_Load
+.fproj.body.tv1 tag bind ttk <1> {global idproj projname ; set idproj [.fproj.body.tv1 identify item %x %y] ; set projname [.fproj.body.tv1 item $idproj -text]}
+.fproj.body.tv1 tag bind ttk <Double-1> {fproc ; destroy .fproj}
+}
+}
+
+# Load project list
+proc Project_Load {} {
+set sql "SELECT * FROM projects"
+Project_Refresh_Grid .fproj.body.tv1 $sql
+}
+
+# open database and refresh list
+proc Project_Refresh_Grid { mywidget myrequest } {
+set db "./db/proj.db"
+sqlite3 db1 $db
+$mywidget delete [$mywidget children {}]
+set result [db1 eval $myrequest { set bobi [list "$id" "$name" "$description" "$version" ]
+		$mywidget insert {} end -id $id -text "$name" -values [list  "$description" "$version" ] \
+		 -tags ttk}]
+db1 close
+$mywidget tag bind ttk <1> {global idproj projname
+	set idproj [.fproj.body.tv1 identify item %x %y] }
+}
+
+# Double click on project list will load procedures
+proc Project_Treeview_Double_Click {} {
+global idproj
+Form_Procedures
+destroy .r.op
+}
+
+# Test if project is opened
+proc Project_Test_Opened {} {
+global projectopened
+switch $projectopened {
+	"no" {return 0}
+	"yes" {return 1}
+}
+}
+
+# Form project : Click on Delete button
+proc Project_Bdel_Click {} {
+global idproj projname
+sqlite3 db1 "./db/proj.db"
+set answer [tk_messageBox -type yesno -icon question -title "Delete selected project?" -message "Are you sure to delete project $projname ?"]
+if {$answer == "yes"} {
+db1 eval { DELETE FROM projects WHERE id = $idproj }
+db1 close
+after 200
+Project_Load
+}
+}
+
+# Save current project  modifications
+proc Project_Save {} {
+tk_messageBox -type retrycancel -icon info -title "Success" -message "Project saved with success!"
+}
+
+# Save current project as new name
+proc Project_Save_As {} {
+	
+}
+
+# Reload project to refresh variables
+proc Project_Reload {} {
+	
+}
+
+# Create package of project
+proc Project_Bpack {} {
+	
+}
+
+proc Project_Execute {} {
+global idproj
+set sql "SELECT from * WHERE idproj=$idproj"
+set evcode ""
+sqlite3 db1 "./db/code.db"
+set sql {SELECT * FROM procedure WHERE idproj = $idproj}
+db1 eval $sql {lappend evcode $procedurecode}
+puts $evcode
+db1 close
+set filetempo [open "./tempo.tk" "w"]
+set allcode [join $evcode "\n"]
+puts $filetempo $allcode
+close $filetempo
+set myapp [exec "wish" "./tempo.tk" "&"]
+}
+
+proc Project_Close {} {
+	global idproj idproc projname procname
+	set projname ""
+	set idproj ""
+	set idproc ""
+	set procname ""
+if {[winfo exist .b] == 1} {destroy .b ;  Main_Body}
+}

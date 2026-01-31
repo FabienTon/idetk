@@ -1,0 +1,113 @@
+# Form to code quickly with tk widgets
+# Made by Fabien in september 2025
+set placement 0
+
+proc Form_Tk {} {
+	if {[winfo exist .ftk] == 0} {
+		toplevel .ftk
+		wm title .ftk "Insert tk code"
+		pack [label .ftk.title -text "Compose your Tk code and click on VALID to insert in editor"] -fill x
+	
+		pack [frame .ftk.body] -fill both -expand 1
+		# button for placement
+		pack [frame .ftk.body.placement ] -fill y -side left
+		pack [button .ftk.body.placement.pack -text "pack" -command Ftk_Pack_Click]
+		pack [button .ftk.body.placement.grid -text "grid" -command Ftk_Grid_Click]
+		pack [button .ftk.body.placement.place -text "place" -command Ftk_Place_Click]
+		# widgets list
+		pack [frame .ftk.body.w ] -fill y -side left
+		pack [label .ftk.body.w.title -text "widgets" -bg #808080 -fg #FFFFFF] -fill x -padx 5
+		pack [listbox .ftk.body.w.lb ] -fill both -expand 1
+		# Properties
+		pack [frame .ftk.body.p ] -fill y -side left
+		pack [label .ftk.body.p.title -text "properties" -bg #808080 -fg #FFFFFF] -fill x -padx 5
+		pack [listbox .ftk.body.p.lb ] -fill both -expand 1		
+		# placement parameters
+		pack [frame .ftk.body.pl ] -fill y -side left
+		pack [label .ftk.body.pl.title -text "placement" -bg #808080 -fg #FFFFFF] -fill x -padx 5
+		pack [listbox .ftk.body.pl.lb ] -fill both -expand 1	
+		# code
+		pack [entry .ftk.result ] -fill x -padx 5 -pady 5
+		pack [frame .ftk.f2 -bd 1 -relief raised] -fill x -side bottom
+			pack [label .ftk.help -text "1- Click on pack, grid, or place button" -bg yellow] -fill x -side bottom
+
+		
+		
+pack [button .ftk.f2.bok -text "Valid" -command {clipboard append [.ftk.result get] ; Editor_Paste_Code ;  destroy .ftk}] -side right
+pack [button .ftk.f2.bcancel -text "Cancel" -command {destroy .ftk}] -side right
+bind .ftk.body.pl.lb <Double-1> {set r [.ftk.body.pl.lb get active] ; .ftk.result insert end " $r" }
+bind .ftk.body.w.lb <Double-1> {set r [.ftk.body.w.lb get active] ; Ftk_Add_Widget $r ; Ftk_Show_Param $r }
+bind .ftk.body.p.lb <Double-1> {set p [.ftk.body.p.lb get active] ; focus .ftk.result ; .ftk.result insert [.ftk.result index insert] $p }
+	}
+}
+
+proc Ftk_Pack_Click {} {
+global placement
+set placement 1
+focus .ftk.result
+.ftk.result delete 0 end
+.ftk.result insert 0 "pack \x5B\x5D"
+.ftk.result icursor 6	
+set param [list "-expand 1" "-fill x" "-fill y" "-fill both" "-padx 5" "-pady 5" "-side left" "-side right" "-side top" "-side bottom"]
+set widget [list "button" "entry" "labelframe " "label" "listbox" "frame" "radiobutton " "text " "scrollbar "\
+    "ttk::combobox " "ttk::treeview" "canvas" "menu " "tk_chooseColor " "tk_optionMenu " "ttk::frame " "checkbutton " \
+    "scale " "tk_messageBox "]
+.ftk.body.pl.lb delete 0 end
+foreach l $param {.ftk.body.pl.lb insert end $l}
+.ftk.body.w.lb delete 0 end
+foreach w $widget {.ftk.body.w.lb insert end $w}
+.ftk.help configure -text "2- Choose your widget by double clicking on widget list"
+}
+
+proc Ftk_Grid_Click {} {
+global placement
+set placement 2
+focus .ftk.result
+.ftk.result delete 0 end
+.ftk.result insert 0 "grid \x5B\x5D"
+.ftk.result icursor 6
+.ftk.help configure -text "2- Choose your widget by double clicking on widget list"
+}
+
+proc Ftk_Place_Click {} {
+global placement
+set placement 3
+focus .ftk.result
+.ftk.result delete 0 end
+.ftk.result insert 0 "place \x5B\x5D"
+.ftk.result icursor 7
+.ftk.help configure -text "2- Choose your widget by double clicking on widget list"
+}
+
+proc Ftk_Add_Widget {w} {
+global placement
+set l [string length $w]
+puts $l$w
+switch $placement {
+	1 {.ftk.result insert 6 "$w " ; focus .ftk.result ; .ftk.result icursor [expr  7 + $l]}
+	2 {.ftk.result insert 6 "$w " ; focus .ftk.result ; .ftk.result icursor [expr  7 + $l]}
+	3 {.ftk.result insert 7 "$w " ; focus .ftk.result ; .ftk.result icursor [expr  8 + $l]}
+}
+.ftk.help configure -text "3- Write name of your widget (example .path.mywidget),\nand double click on parameters list to add parameter.\nWhen parameters are done, double click on placement and click on valid."
+}
+
+proc Ftk_Show_Param {w} {
+set w0 [list "-bg " "-fg " "-bd " "-text " "-image " "-compound " "-padx " "-pady "] ; # button, label
+set w1 [list "-bg " "-width " "-height "] ; # frame
+set w2 [list "-bg " "-bd " "-text " "-image " "-compound " "-padx " "-pady "]; # labelframe
+switch $w {
+	"button" {.ftk.body.p.lb delete 0 end ; foreach l $w0 {.ftk.body.p.lb insert end $l}}
+	"entry" {}
+	"labelframe" {}
+	"label" {.ftk.body.p.lb delete 0 end ; foreach l $w0 {.ftk.body.p.lb insert end $l}}
+	"listbox" {}
+	"frame" {}
+	"radiobutton" {}
+	"text" {}
+	"scrollbar" {}
+	"canvas" {}
+	"menu" {}
+	"scale" {}
+	
+}
+}

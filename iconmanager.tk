@@ -1,0 +1,180 @@
+# Icon manager : Reusable icon in al tcl tk project
+
+# Form widgets hierarchy
+proc Form_Icons_Manager {} {
+if {[winfo exist .r.im] == 1} {destroy .r.im}
+ttk::frame .r.im ; .r add .r.im -text "Image manager"
+pack [frame .r.im.frm -padx 5 -pady 5 -bg #101010] -fill both -expand 1
+pack [label .r.im.frm.title -text "Image manager for your Tcl Tk projects" -anchor center -bg #2F4380 -fg #FFFFFF] -fill x
+Icons_Toolbar ;  # Menu on the top of form
+Icons_Notebook
+Icons_Path
+Icons_Stock
+Icons_Personal
+#Show_Icons_List ; # List of scenario available
+#Show_Icons_Details ; # Scenario parameter
+#Icons_Refresh_List
+.r select .r.im
+}
+
+# Make Menu toolbar
+proc Icons_Toolbar {} {
+pack [frame .r.im.frm.f] -fill x
+pack [button .r.im.frm.f.b0 -text "Add\nimage" -image iadd -compound left] -side left -fill both
+pack [button .r.im.frm.f.b1 -text "Edit\nimage" -image iedit -compound left] -side left -fill both
+pack [button .r.im.frm.f.b2 -text "Del\nimage" -image idel -compound left] -side left -fill both
+pack [entry .r.im.frm.f.find] -fill both -expand 1 -side left ; # Find text in descrition
+pack [button .r.im.frm.f.b3 -text "Copy code\nto clipboard" -image igeneratecode -compound left] -side left -fill both
+pack [button .r.im.frm.f.b4 -text "Close" -image iquit -compound left -command {destroy .r.im}] -side right -fill both
+pack [button .r.im.frm.f.b5 -text "Help\nme..." -image ihelp -compound left] -side right -fill both
+focus .r.im.frm.f.find
+bind .r.im.frm.f.b0 <Enter> {balloon "Add image to your project"}
+bind .r.im.frm.f.b0 <Leave> {balloon ""}
+bind .r.im.frm.f.b1  <Enter> {balloon "Modify selected image"}
+bind .r.im.frm.f.b1  <Leave> {balloon ""}
+bind .r.im.frm.f.b2 <Enter> {balloon "Delete selected image"}
+bind .r.im.frm.f.b2 <Leave> {balloon ""}
+bind .r.im.frm.f.b3 <Enter> {balloon "Copy code to clipboard"}
+bind .r.im.frm.f.b3 <Leave> {balloon ""}
+bind .r.im.frm.f.b4 <Enter> {balloon "Close Image manager"}
+bind .r.im.frm.f.b4 <Leave> {balloon ""}
+bind .r.im.frm.f.b5 <Enter> {balloon "Help index"}
+bind .r.im.frm.f.b5 <Leave> {balloon ""}
+}
+
+proc Icons_Notebook {} {
+pack [ttk::notebook .r.im.frm.nb ] -fill both -expand 1 -padx 5 -pady 5
+}
+
+proc Icons_Path {} {
+ttk::frame .r.im.frm.nb.tb0; .r.im.frm.nb add .r.im.frm.nb.tb0 -text "Path" -image ifolder -compound top
+pack [label .r.im.frm.nb.tb0.title -text "Choose image from path" -anchor center -bg #2F4380 -fg #FFFFFF] -fill x
+pack [frame .r.im.frm.nb.tb0.fr] -fill both -expand 1 -padx 5 -pady 5
+pack [ttk::treeview .r.im.frm.nb.tb0.fr.tvfolder ] -fill both -side left -expand 1
+.r.im.frm.nb.tb0.fr.tvfolder column #0 -anchor center
+.r.im.frm.nb.tb0.fr.tvfolder heading #0 -text "Folder"
+pack [ttk::treeview .r.im.frm.nb.tb0.fr.tvfile ] -fill both -side left -expand 1
+.r.im.frm.nb.tb0.fr.tvfile column #0 -anchor center
+.r.im.frm.nb.tb0.fr.tvfile heading #0 -text "File"
+pack [entry .r.im.frm.nb.tb0.ename] -fill x  -padx 5 -pady 5
+pack [ttk::combobox .r.im.frm.nb.tb0.cbtype] -fill x  -padx 5 -pady 5
+.r.im.frm.nb.tb0.cbtype configure -values [list "Image file png, jpg, jpeg, gif , xpm, bmp" "All files *"]
+.r.im.frm.nb.tb0.cbtype set "Image file png, jpg, jpeg, gif , xpm, bmp"
+}
+
+proc Icons_Stock {} {
+ttk::frame .r.im.frm.nb.tb1 ; .r.im.frm.nb add .r.im.frm.nb.tb1 -text "Stock" -image igallery -compound top
+pack [label .r.im.frm.nb.tb1.title -text "Choose image from stock" -anchor center -bg #2F4380 -fg #FFFFFF] -fill x
+pack [frame .r.im.frm.nb.tb1.frtitle ] -fill x
+pack [label .r.im.frm.nb.tb1.frtitle.l0 -text "Size  " -anchor w] -side left
+pack [ttk::combobox .r.im.frm.nb.tb1.frtitle.cbsize]  -side left -fill x
+.r.im.frm.nb.tb1.frtitle.cbsize configure -values "16 22 24 32 48 64 128 256 512 1024"
+.r.im.frm.nb.tb1.frtitle.cbsize set "16"
+Icons_Refresh
+}
+
+proc browse {t} {
+puts $t; puts "event[tixEvent value]" ; # renvoi l'index de la liste de l'item clique
+}
+
+proc Icons_Personal {} {
+ttk::frame .r.im.frm.nb.tb2 ; .r.im.frm.nb add .r.im.frm.nb.tb2 -text "Personal" -image ibdd -compound top
+}
+
+
+# Icons list
+proc Show_Icons_List {} {
+pack [frame .r.im.frm.lft -padx 3 -pady 3] -fill both -side left 
+pack [ttk::treeview .r.im.frm.lft.tv0] -fill both -expand 1 -padx 7 -pady 7 ; # widget treeview
+.r.im.frm.lft.tv0 heading #0 -text "Images list" -anchor center
+pack [label .r.im.frm.lft.sep2] -fill x ; # separator
+.r.im.frm.lft.tv0 tag bind ttk <1> {global idimg ; set idimg [.r.im.frm.lft.tv0 identify item %x %y] ; Click_On_Icons_List $idimg}
+}
+
+proc Show_Icons_Details {} {
+pack [frame .r.im.frm.r -padx 5 -pady 5] -fill both -side left  -expand 1
+pack [ttk::notebook .r.im.frm.r.nb ] -fill both -expand 1 -padx 5 -pady 5
+ttk::frame .r.im.frm.r.nb.tb1 ; .r.im.frm.r.nb add .r.im.frm.r.nb.tb1 -text "Image" -image iinfo -compound left
+pack [label .r.im.frm.r.nb.tb1.t0 -text " Name (will appear in code)" -anchor center -bg #101010 -fg #FFFFFF] -fill x
+pack [entry .r.im.frm.r.nb.tb1.name ] -fill x -padx 5
+pack [label .r.im.frm.r.nb.tb1.sep0 ] -fill x
+pack [label .r.im.frm.r.nb.tb1.t1 -text " Description (for image organisation and search procedure)" -anchor center -bg #101010 -fg #FFFFFF] -fill x
+pack [entry .r.im.frm.r.nb.tb1.desc ] -fill x -padx 5
+pack [label .r.im.frm.r.nb.tb1.sep1 ] -fill x
+pack [label .r.im.frm.r.nb.tb1.t2 -text " Size (write this format : widthxheight)" -anchor center -bg #101010 -fg #FFFFFF] -fill x
+pack [entry .r.im.frm.r.nb.tb1.size ] -fill x -padx 5
+pack [label .r.im.frm.r.nb.tb1.sep2 ] -fill x
+pack [label .r.im.frm.r.nb.tb1.t3 -text " Preview (base64 datas)" -anchor center -bg #101010 -fg #FFFFFF] -fill x
+pack [label .r.im.frm.r.nb.tb1.preview -bg #101010] -fill both -expand 1 -padx 5 -pady 5
+}
+
+# Refresh Myproject widgets list
+proc Icons_Refresh_List {} {
+global procname
+set sql "SELECT * from image"
+sqlite3 db1 "./db/code.db"
+.r.im.frm.lft.tv0 delete [.r.im.frm.lft.tv0 children {}]
+db1 eval $sql {.r.im.frm.lft.tv0 insert {} end -id $id -text "$name" -tags ttk}
+db1 close
+}
+
+
+# Click event on one widget button to insert
+proc Click_On_Icons_List {myid} {
+sqlite3 db1 "./db/code.db"
+set sql "SELECT * FROM image WHERE id='$myid'"
+db1 eval $sql {
+	.r.im.frm.r.nb.tb1.name delete 0 end
+	.r.im.frm.r.nb.tb1.name insert end $name
+	.r.im.frm.r.nb.tb1.desc delete 0 end
+	.r.im.frm.r.nb.tb1.desc insert end $description
+	image create photo mypreview -data "$data"
+	.r.im.frm.r.nb.tb1.preview configure -image mypreview
+	.r.im.frm.r.nb.tb1.size delete 0 end
+	set x "x"
+	.r.im.frm.r.nb.tb1.size insert end "$width$x$height"
+	}
+db1 close
+}
+
+# Prepare interface to add mode
+proc Click_Add_Icon {} {
+.r.im.frm.r.nb.tb1.name delete 0 end
+.r.im.frm.r.nb.tb1.desc delete 0 end
+.r.im.frm.r.nb.tb1.size delete 0 end
+.r.im.frm.r.nb.tb1.preview configure -image ""
+pack [button .r.im.frm.f.bsave -text "Save new image" -image isave -compound left -command Bdd_Add_New_Icon] -side right
+focus .r.im.frm.r.nb.tb1.name
+}
+
+# Click on Save modifications button
+proc Bdd_Add_New_Icon {} {
+global imgdata
+sqlite3 db1 "./db/code.db"
+set myname [.r.im.frm.r.nb.tb1.name get]
+set mydesc [.r.im.frm.r.nb.tb1.desc get]
+set mysize [.r.im.frm.r.nb.tb1.size get]
+db1 eval {INSERT INTO image ("name","description","data","size") \
+		VALUES ($myname,$mydesc,$imgdata,$mysize) }
+db1 close
+after 300
+Icons_Refresh_List	
+}
+
+proc ResizeImg {img width height} {
+set resized [image create photo -width $width -height $height]
+$resized copy $img -subsample [expr {int([image width $img] / $width)}] [expr {int([image height $img] / $height)}]
+return $resized
+}
+
+proc Icons_Refresh {} {
+tixScrolledTList .r.im.frm.nb.tb1.t -options {tlist.browseCmd browse} -scrollbar auto; pack .r.im.frm.nb.tb1.t -expand 1 -fill both
+ set red  [tixDisplayStyle imagetext -bg #FFF000]
+set tlist [.r.im.frm.nb.tb1.t subwidget tlist]
+$tlist configure  -bg white -fg blue 
+set m [list "ordinateur" "bonjour" "Diskque 1" "Allo?" "ici" "fichier"]
+foreach l $m {$tlist insert end -itemtype imagetext -image [ResizeImg tempo \
+	[.r.im.frm.nb.tb1.frtitle.cbsize get] [.r.im.frm.nb.tb1.frtitle.cbsize get]] -text $l  }
+# with style  : foreach l $m {$tlist insert end -itemtype imagetext -image ifolder -text $l -style $red }
+bind .r.im.frm.nb.tb1.frtitle.cbsize <<ComboboxSelected>> { destroy .r.im.frm.nb.tb1.t ; Icons_Refresh}
+}

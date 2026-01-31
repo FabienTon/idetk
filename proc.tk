@@ -1,0 +1,178 @@
+# left treeview to list all procedures in project
+proc Form_Procedures {} {
+global idproj
+if {[winfo exist .r.pr] == 1} {destroy .r.pr}
+ttk::frame .r.pr ; .r add .r.pr -text "Code editor"
+pack [menubutton .r.pr.mb -image imenu -text "Project" -compound left -menu .r.pr.mb.m -relief raised] -side left
+menu .r.pr.mb.m -tearoff 0
+.r.pr.mb.m add command -label "New procedure" -image iadd -compound left -command Button_Click_Add_Proc
+.r.pr.mb.m add command -label "Delete procedure" -image idel -compound left -command Button_Click_Remove_Proc
+.r.pr.mb.m add separator
+.r.pr.mb.m add command -label "Run code" -image irun -compound left  -command Proc_Click_Bexecutescript
+.r.pr.mb.m add separator
+.r.pr.mb.m add command -label "Create package" -image ipack -compound left -command Project_Bpack
+.r.pr.mb.m add command -label "Project properties" -image iconfig -compound left -command Proc_Click_Bproperties
+.r.pr.mb.m add separator
+.r.pr.mb.m add command -label "Close project" -image iquit -compound left  -command {destroy .r.pr}
+
+pack [frame .r.pr.frm -padx 10 -pady 10 -bg #101010] -fill both -expand 1
+#  toolbar
+pack [frame .r.pr.frm.tb ] -fill x  ; # Toolbar
+pack [button .r.pr.frm.tb.bt0  -text "New\nprocedure" -image iadd -compound left -command Proc_Badd_Click] -side left -fill y
+pack [button .r.pr.frm.tb.bt2  -text "Delete\nprocedure" -image idel -compound left -command Proc_Bdel_Click] -side left -fill y
+pack [label .r.pr.frm.tb.sep0 -width 2] -side left
+pack [button .r.pr.frm.tb.bexec -text "Run\ncode" -image irun -compound left  -command Proc_Brun_Click] -side left -fill y
+pack [button .r.pr.frm.tb.bzip  -text "Create\npackage" -image ipack -compound left] -side left -fill y
+pack [button .r.pr.frm.tb.bconfig  -text "Project\nproperties" -image iconfig -compound left -command Proc_Click_Bproperties] -side left -fill y
+pack [button .r.pr.frm.tb.bquit -text "Close\nproject" -image iquit -compound left  -command {destroy .r.pr}] -side right -fill y
+
+pack [frame .r.pr.frm.l ] -fill y -side left
+pack [frame .r.pr.frm.r -bg #000000] -fill both -expand 1 -side right ; # right frame for editor
+
+pack [scrollbar .r.pr.frm.l.scv -command ".r.pr.frm.l.tv0 yview"] -side right -fill y
+pack [ttk::treeview .r.pr.frm.l.tv0 -selectmode extended -yscrollcommand ".r.pr.frm.l.scv set"] -fill both -side left -expand 1
+.r.pr.frm.l.tv0 column #0 -anchor center
+.r.pr.frm.l.tv0 heading #0 -text "Procedures"
+set sql  "select * from procedure WHERE idproj='$idproj'"
+Proc_Refresh_List $sql
+.r.pr.frm.l.tv0 tag bind ttk <1> {global idproc procname ; set idproc [.r.pr.frm.l.tv0 identify item %x %y] ; set procname [.r.pr.frm.l.tv0 item $idproc -text]}
+.r.pr.frm.l.tv0 tag bind ttk <Double-1> { Load_Proc_In_Editor ; Maximize_Main_Form}
+if {[winfo exist .fwizzard]== 1} {destroy .fwizzard}
+.r select .r.pr
+bind .r.pr.frm.tb.bt0 <Enter> {balloon "Create new procedure"}
+bind .r.pr.frm.tb.bt0 <Leave> {balloon ""}
+bind .r.pr.frm.tb.bt2 <Enter> {balloon "Delete selected procedure in list"}
+bind .r.pr.frm.tb.bt2 <Leave> {balloon ""}
+bind .r.pr.frm.tb.bexec <Enter> {balloon "Execute project from main class"}
+bind .r.pr.frm.tb.bexec <Leave> {balloon ""}
+bind .r.pr.frm.tb.bzip <Enter> {balloon "Create zip file of your project"}
+bind .r.pr.frm.tb.bzip <Leave> {balloon ""}
+bind .r.pr.frm.tb.bconfig <Enter> {balloon "Configure options of current project"}
+bind .r.pr.frm.tb.bconfig <Leave> {balloon ""}
+bind .r.pr.frm.tb.bquit <Enter> {balloon "Close current project"}
+bind .r.pr.frm.tb.bquit <Leave> {balloon ""}
+bind .r.pr.frm.l.tv0 <Enter> {balloon "Double click on procedure to load code"}
+bind .r.pr.frm.l.tv0 <Leave> {balloon ""}
+}
+
+# Load procedure code in editor
+proc Load_Proc_In_Editor {} {
+global procname idproc
+set procname [.r.pr.frm.l.tv0 item $idproc -text]
+Form_Editor
+.r.pr.frm.r.e.editor delete 0.0 end
+.r.pr.frm.r.e.editor insert end [Bdd_Read_Procedure $idproc]
+colorize .r.pr.frm.r.e.editor 0.0
+}
+
+proc Bdd_Read_Procedure {myid} {
+sqlite3 db1 "./db/code.db"
+set sql {SELECT * FROM procedure WHERE id = $myid}
+set m [db1 eval $sql { set mycode $procedurecode } ]
+return $mycode
+db1 close	
+}
+
+# Event click add procedure
+proc Proc_Badd_Click {} {
+if {[winfo exist ._faddproc] == 1} {destroy ._faddproc}
+global groups
+toplevel ._faddproc ; wm title ._faddproc "Add procedure"
+wm geometry ._faddproc +250+130
+pack [ttk::notebook ._faddproc.nb ] -fill both -expand 1 -padx 5 -pady 5
+ttk::frame ._faddproc.nb.tab1 ; ._faddproc.nb add ._faddproc.nb.tab1 -text "Add Procedure" -image iproc -compound left
+# Fields
+pack [labelframe ._faddproc.nb.tab1.lb0 -text " Procedure name "] -fill x
+pack [entry ._faddproc.nb.tab1.lb0.name] -fill x
+
+pack [labelframe ._faddproc.nb.tab1.lb1 -text " Procedure argument (separate by spaces) "] -fill x
+pack [entry ._faddproc.nb.tab1.lb1.arg] -fill x
+
+pack [labelframe ._faddproc.nb.tab1.lb2 -text " Choose group or write new"] -fill x
+pack [ttk::combobox ._faddproc.nb.tab1.lb2.cb ] -fill x
+._faddproc.nb.tab1.lb2.cb configure -values $groups
+
+# Buttons
+pack [frame ._faddproc.bottom] -fill x
+pack [button ._faddproc.bottom.bok -text "Ok" -image ivalid -compound left -command Click_Proc_Add_Ok] -side right
+pack [button ._faddproc.bottom.bcancel -text "Cancel" -image iquit -compound left -command { destroy ._faddproc}] -side right
+focus ._faddproc.nb.tab1.lb0.name
+}
+
+
+
+proc Bdd_Add_Main_Proc {} {
+global idproj
+set myname "main"
+set myargs ""
+set mygroup "."
+set mycode "\x23 Main procedure \n"
+sqlite3 db1 "./db/code.db"
+db1 eval { INSERT INTO procedure ("name","procedurecode","argument","idproj","group") VALUES ($myname,$mycode,$myargs,$idproj,$mygroup) }
+db1 close
+after 300
+Form_Procedures
+}
+
+# Event click Remove procedure
+proc Proc_Bdel_Click {} {
+global procname idproc
+set answer [tk_messageBox -type yesno -icon question -title "Remove procedure?" -message "Are you sure to remove procedure named $procname ?"]
+if {$answer == yes} { sqlite3 db1 "./db/code.db" ; db1 eval { DELETE FROM procedure WHERE id = $idproc }
+	db1 close
+	after 300
+	Form_Procedures }
+}
+
+# Refresh procedures list
+proc Proc_Refresh_List {mysql} {
+global projname
+set db "./db/code.db" ; sqlite3 db1 $db ; global groups
+.r.pr.frm.l.tv0 delete [.r.pr.frm.l.tv0 children {}]
+set groups ""
+set myid "" ; set myname "" ; set mygroup ""
+db1 eval $mysql { lappend myid $id ; lappend myname $name ; lappend mygroup $group}
+db1 close
+# Create groups in treeview
+set r [llength $mygroup]
+set groups [lindex $group 0]
+while {$r>0} {
+	set r [expr $r - 1]
+	set tt [lsearch $groups [lindex $mygroup $r]]
+	if { $tt == -1 } {lappend groups [lindex $mygroup $r]}
+}
+foreach it $groups {.r.pr.frm.l.tv0 insert {} end -id $it -text "$it" -image igroup -tags ttk} ; # insert groups key
+
+# insrt procedure in new groups
+set r [llength $mygroup]
+while {$r>0} {
+	set r [expr $r - 1]
+	.r.pr.frm.l.tv0 insert [lindex $mygroup $r] end -id [lindex $myid $r] -text [lindex $myname $r] -image iproc -tags ttk
+}
+.r.pr.frm.title configure -text "Current project : $projname"
+}
+
+# Click on execute script
+proc Proc_Brun_Click {} {
+# lit toutes les procedure du project
+global idproj
+sqlite3 db1 "./db/code.db"
+set sql "SELECT * FROM procedure WHERE idproj = $idproj"
+set mycode "" ; set rc "\n"
+set allcode [db1 eval $sql {puts $procedurecode} ]
+db1 close
+set myfile [open "./tmp.tk" "w"]
+puts $myfile $mycode
+close $myfile
+set myproc [exec "wish" "./tmp.tk" "&"]
+}
+
+proc Proc_Bproperties_Click {} {
+Form_Properties
+Properties_Ask_Edit
+.r select .r.pp
+}
+
+
+ 
+

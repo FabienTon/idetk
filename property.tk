@@ -1,0 +1,114 @@
+# ################## PROPERTIES FORM FOR IDETK #########################
+# June 2025 by Fabien
+
+# Properties Form
+proc Form_Properties {} {
+global example
+if {[winfo exist .r.pp] == 1} {destroy .r.pp}
+ttk::frame .r.pp ; .r add .r.pp -text "Property"
+pack [frame .r.pp.frm -padx 30 -pady 30 -bg #101010] -fill both -expand 1
+pack [frame .r.pp.frm.fr  -bg #513855 -padx 5 -pady 5] -fill both -expand 1
+
+# toollbar
+pack [frame .r.pp.frm.fr.tb -padx 3 -pady 3 -bg #513855] -fill x
+pack [label .r.pp.frm.fr.tb.t -text "Configure new project " -anchor center -bg #513855 -fg #FFFFFF] -fill both -expand 1 -side left
+pack [button .r.pp.frm.fr.tb.bcancel -text "Cancel" -image iquit -compound left -command {destroy .r.pp}] -fill y -side right 
+
+set w .r.pp.frm.fr.body
+
+# body left icon
+pack [frame $w ] -fill both -expand 1 -side left
+pack [label .r.pp.frm.fr.body.logo -image iplume -anchor center] -fill both 
+
+# project fields
+pack [labelframe $w.lf0 -text "Project Name" ] -fill x -padx 8
+pack [entry $w.lf0.e0 ] -fill both -expand 1 -padx 3 -pady 3
+pack [labelframe $w.lf1 -text "Date of creation" ] -fill x -padx 8
+pack [entry $w.lf1.e1 ] -fill both -expand 1 -padx 3 -pady 3
+pack [labelframe $w.lf2 -text "Version" ] -fill x -padx 8
+pack [entry $w.lf2.e2 ] -fill both -expand 1 -padx 3 -pady 3
+pack [labelframe $w.lf5 -text "Description" ] -fill x -padx 8
+pack [entry $w.lf5.e5 ] -fill both -expand 1 -padx 3 -pady 3
+pack [labelframe $w.lf6 -text "path" ] -fill x -padx 8
+pack [entry $w.lf6.e6 ] -fill both -expand 1 -padx 3 -pady 3
+pack [labelframe $w.lf7 -text "Project type" ] -fill x  -padx 8
+pack [ttk::combobox $w.lf7.cb7 ] -fill both -expand 1 -padx 3
+pack [labelframe $w.lf9 -text "Language of your application" ] -fill x -padx 8
+pack [ttk::combobox  $w.lf9.cb9 ] -fill both -expand 1 -padx 3 -pady 3
+pack [checkbutton $w.lf9.cbb10 -text "my project is an example" -variable example -anchor w] -fill x
+focus $w.lf5.e5
+}
+
+# Configure fields to add new properties project
+proc Properties_Ask_New {} {
+set w .r.pp.frm.fr.body
+$w.lf0.e0 delete 0 end
+$w.lf0.e0 insert end [Conf_Read "ProjectDefault"]
+set systemTime [clock seconds]
+$w.lf1.e1 delete 0 end
+$w.lf1.e1 insert end [clock format $systemTime -format %D]
+$w.lf2.e2 delete 0 end
+$w.lf2.e2 insert end "0.0.1"
+set lang [Conf_Read "Language"]
+$w.lf9.cb9 configure -values $lang
+$w.lf9.cb9 set "English"
+$w.lf6.e6 delete 0 end
+$w.lf6.e6 insert end [Conf_Read "Path"]
+set ptype [list "Console Tcl only" "Graphic Tk" "Graphic Tk sqlite3" "Component" "Other"]
+$w.lf7.cb7 configure -values $ptype
+$w.lf7.cb7 set "Graphic Tk"
+pack [button .r.pp.frm.fr.tb.bcreate -text "Create\nproject" -image ivalid -compound left -command Project_Add_Bdd] -fill y -side right	
+}
+
+
+# Configure fields to Edit current project
+proc Properties_Ask_Edit {} {
+set w .r.pp.frm.fr.body
+$w.lf0.e0 delete 0 end
+$w.lf0.e0 insert end "no"
+$w.lf1.e1 delete 0 end
+$w.lf1.e1 insert end "no"
+$w.lf2.e2 delete 0 end
+$w.lf2.e2 insert end "no"
+$w.lf9.cb9 set "no"
+$w.lf6.e6 delete 0 end
+$w.lf6.e6 insert end "no"
+set ptype [list "Console Tcl only" "Graphic Tk" "Graphic Tk sqlite3" "Component" "Other"]
+$w.lf7.cb7 configure -values $ptype
+$w.lf7.cb7 set "Graphic Tk"
+pack [button .r.pp.frm.fr.tb.bvalid -text "Valid\nmodification" -image ivalid -compound left -command Project_Edit_Bdd] -fill y -side right	
+}
+
+# Create new project, save new properties
+proc Project_Add_Bdd {} {
+global idproj example
+set w .r.pp.frm.fr.body
+set pname [$w.lf0.e0 get]
+set pdate [$w.lf1.e1 get]
+set pversion [$w.lf2.e2 get]
+set plang [$w.lf9.cb9 get]
+set plib [$w.lf7.cb7 get]
+set ptheme 1
+set ptype [$w.lf7.cb7 get]
+set pdesc [$w.lf5.e5  get]
+set ppath [$w.lf6.e6 get]
+set pexample $example
+sqlite3 db1 "./db/proj.db"
+db1 eval { INSERT INTO projects ("name","date","version","lang","lib","idetheme","ptype","description","example","path") \
+						VALUES ($pname,$pdate,$pversion,$plang,$plib,$ptheme,$ptype,$pdesc,$pexample,$ppath) }
+set idproj [db1 eval {SELECT last_insert_rowid()}]
+db1 close
+after 150
+Bdd_Add_Main_Proc ; # Add main procedure in proc.
+tk_messageBox -type ok -icon info -title "Project created" -message "Project created with success."
+destroy .r.pp
+}
+
+
+# Click on Valid modification
+proc Project_Edit_Bdd {} {
+puts " modification"
+destroy .r.pp
+}
+
+

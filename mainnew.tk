@@ -1,0 +1,187 @@
+# Main form for IDE tk
+package require Tk
+package require sqlite3
+package require Tix
+
+source img.tk ; # images in project
+source proc.tk ; # Procedures Form
+source writer.tk ; # Code editor Form
+source setting.tk ; # configuration file access
+source interface.tk ; # Create interface module
+source iconmanager.tk ; # Form to manage images
+source colorchooser.tk ; # personnal colorchooser dialog box
+source example.tk ; # Example database
+source property.tk  ; # Form properties
+	
+set idproj 0 ; # Current ID project (id is key in sqlite database)
+set idproc 0 ; # Current ID procedure
+set idscenario 0 ; # Curent ID scenario in designer
+set idexample 0 ; # Current id example selected
+set idimg 0 ; # Current ID image in images manager
+set imgdata "" ; # base64 datas of new image in image manager Form
+set wms 0  ; # whomodify scenario 1add, 2edit
+set pictscenario "" ; # image data pasted in scenario
+set projectopened "no"
+set projname "Default1" ; # Current project name
+set procname "" ; # Current selected procedure name
+set modif 0 ; # if modif = 1 then something changed in project, ask to save
+set counter 0 ; # autoincremental counter for widget name
+set groups "" ; # group list for procedure
+set tw ""
+set pm 0 ; # Project mode 0see 1add 2edit 3del (used in project creation, edit or del)
+#ecolor = theme : 0description, 1fontcolor, 2bgcolor, 3keyword, 4operatorsymbol, 5
+set example 0
+set ecolor [list arguments #000000 #FFFFFF #F0F000 #FF00FF #00FF00 #00FFFF #FF5F5F #808000 #607080] ; # editor color theme
+
+
+# Maximize window procedure
+proc Maximize_Main_Form {} {
+wm geometry . [winfo vrootwidth .]x[winfo vrootheight .]+0+0
+}
+
+
+
+wm title . "IDE tk - "
+Maximize_Main_Form
+
+# Menu toolbar on the left
+pack [frame .left -bg #2F4380 -padx 3 -pady 3] -fill y -side left 
+pack [label .left.sep0 -width 1 -bg #2F4380] -fill x
+pack [button .left.bproj -image iproj -command {Form_Project}] -fill both
+pack [button .left.bimanager -image iconmanager -command Form_Icons_Manager] -fill both
+pack [button .left.bcode -image igroup -command Form_Example] -fill both
+pack [button .left.bwidget -image iscenario -command Form_Scenario] -fill both
+pack [button .left.babout -image iinfo  -command Main_Click_Babout] -fill both
+pack [button .left.bhelp -image ihelp  -command In_Progress] -fill both
+pack [label .left.sep1 -width 1 -bg #2F4380] -fill x
+pack [button .left.bquit -image iexit -command {exit}] -fill both -side bottom
+pack [label .msg -bg #FAFFD5] -fill x -side top
+pack [ttk::notebook .r] -fill both -expand 1  ;# Create main notebook
+ttk::frame .r.bg ; .r add .r.bg ;
+pack [frame .r.bg.bg -bg #101010] -fill both -expand 1
+
+bind .left.bproj <Enter> {balloon "Manage Ide Tk projects"}
+bind .left.bproj <Leave> {balloon ""}
+bind .left.bimanager <Enter> {balloon "Manage images and icons"}
+bind .left.bimanager <Leave> {balloon ""}
+bind .left.bcode <Enter> {balloon "Find code example..."}
+bind .left.bcode <Leave> {balloon ""}
+bind .left.bwidget <Enter> {balloon "Interface creator"}
+bind .left.bwidget <Leave> {balloon ""}
+bind .left.babout <Enter> {balloon "Show about IdeTK..."}
+bind .left.babout <Leave> {balloon ""}
+bind .left.bhelp <Enter> {balloon "Help index"}
+bind .left.bhelp <Leave> {balloon ""}
+bind .left.bquit <Enter> {balloon "Quit Ide Tk"}
+bind .left.bquit <Leave> {balloon ""}
+
+# Wizzard Form
+proc Form_Project {} {
+if {[winfo exist .r.op] == 1} {destroy .r.op}
+ttk::frame .r.op ; .r add .r.op -text "Projects"
+pack [frame .r.op.frm -padx 20 -pady 20 -bg #101010] -fill both -expand 1
+pack [frame .r.op.frm.fr  -bg #296133 -padx 10 -pady 10] -fill both -expand 1
+# Toolbar
+
+pack [frame .r.op.frm.fr.tb -bg #296133] -fill x
+pack [button .r.op.frm.fr.tb.bt0 -text "New\nproject" -image iadd -compound left -command {Main_Click_Bnewproj ; destroy .r.op}] -fill y -side left
+pack [button .r.op.frm.fr.tb.bt2 -text "Delete" -image idel -compound left -command Main_Click_Bdel] -fill y  -side left
+pack [button .r.op.frm.fr.tb.bt6 -text "close" -image iquit -compound left -command {destroy .r.op}] -fill y  -side right
+pack [label .r.op.frm.fr.sep1 -bg #296133 ] -fill x
+pack [label .r.op.frm.fr.title -image img ]
+pack [label .r.op.frm.fr.sep0 -bg #296133 ]
+# projects list	
+pack [label .r.op.frm.fr.title1 -text "List of projects available (Double click to open)" -font "System 10" -bg #0b3210 -fg #FFFFFF] -fill x
+
+pack [frame .r.op.frm.fr.body ] -fill both -expand 1 -side left
+pack [scrollbar .r.op.frm.fr.body.scv -command ".r.op.frm.fr.body.tv1 yview"] -side right -fill y
+pack [ttk::treeview .r.op.frm.fr.body.tv1 -columns "A B" -displaycolumns "A B" \
+			-selectmode extended -yscrollcommand ".r.op.frm.fr.body.scv set"] -fill both -side left -expand 1
+set col [list 0 1 2] ; set nam [list "name" "description" "version"]
+
+foreach w $col {
+	.r.op.frm.fr.body.tv1 column #$w -anchor center
+	.r.op.frm.fr.body.tv1 heading #$w -text [lindex $nam $w]
+	}
+Project_Load
+.r select .r.op
+.r.op.frm.fr.body.tv1 tag bind ttk <1> {global idproj projname ; set idproj [.r.op.frm.fr.body.tv1 identify item %x %y] ; set projname [.r.op.frm.fr.body.tv1 item $idproj -text]}
+.r.op.frm.fr.body.tv1 tag bind ttk <Double-1> {Main_Double_Click_Treeview}
+
+bind .r.op.frm.fr.tb.bt0 <Enter> {balloon "Create new Ide Tk project"}
+bind .r.op.frm.fr.tb.bt0 <Leave> {balloon ""}
+bind .r.op.frm.fr.tb.bt2 <Enter> {balloon "Delete selected project in list"}
+bind .r.op.frm.fr.tb.bt2 <Leave> {balloon ""}
+bind .r.op.frm.fr.tb.bt6 <Enter> {balloon "Close projects Form"}
+bind .r.op.frm.fr.tb.bt6 <Leave> {balloon ""}
+bind .r.op.frm.fr.body.tv1 <Enter> {balloon "Double click to open project"}
+bind .r.op.frm.fr.body.tv1 <Leave> {balloon ""}
+}
+
+# Create rsql request and launch refresh grid
+proc Project_Load {} {
+set sql "SELECT * FROM projects"
+Project_Refresh_Grid .r.op.frm.fr.body.tv1 $sql
+}
+
+# open database and refresh gris
+proc Project_Refresh_Grid { mywidget myrequest } {
+set db "./db/proj.db"
+sqlite3 db1 $db
+$mywidget delete [$mywidget children {}]
+set result [db1 eval $myrequest { set bobi [list "$id" "$name" "$description" "$version" ]
+		$mywidget insert {} end -id $id -text "$name" -values [list  "$description" "$version" ] \
+		 -tags ttk}]
+db1 close
+$mywidget tag bind ttk <1> {global idproj projname
+	set idproj [.r.op.frm.fr.body.tv1 identify item %x %y] }
+}
+
+# Make About Form
+
+
+# Click on Open project button
+proc Main_Double_Click_Treeview {} {
+global idproj
+Form_Procedures
+destroy .r.op
+}
+
+# Test if one project is opened
+proc Test_Project_Opened {} {
+global projectopened
+switch $projectopened {
+	"no" {return 0}
+	"yes" {return 1}
+}
+}
+
+
+# ######################## INTERFACE ###################################
+
+
+
+proc Main_Click_Bdel {} {
+global idproj projname
+sqlite3 db1 "./db/proj.db"
+set answer [tk_messageBox -type yesno -icon question -title "Delete selected project?" -message "Are you sure to delete project $projname ?"]
+if {$answer == "yes"} {
+db1 eval { DELETE FROM projects WHERE id = $idproj }
+db1 close
+after 200
+Project_Load
+}
+}
+
+# Open properties Form for new project
+proc Main_Click_Bnewproj {} {
+Form_Properties; # Open properties Form
+Properties_Ask_New ; # refresh property view
+}
+
+# Show message in label message on the top of main form
+proc balloon {msg} {
+.msg configure -text $msg -anchor w
+}
+
+

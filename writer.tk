@@ -1,0 +1,421 @@
+# IDEtk code editor for Tcl tk
+# Made in september 2024 by Fabien
+# www.tcltk.fr
+
+# ######################## INTERFACE ###################################
+# Main editor frame
+proc Form_Editor {} {
+Form_Editor_Toolbar
+Form_Editor_Code_Writer
+Form_Editor_Fastdoc
+}
+
+# Toolbar
+proc Form_Editor_Toolbar {} {
+pack [frame .b.r.t -relief raised -bd 1] -fill x
+pack [button .b.r.t.b3 -image isave -command Editor_Save] -side left -padx 2 -pady 2
+pack [label .b.r.t.sep1 -width 2] -side left
+pack [button .b.r.t.b5 -image icut -command Editor_Cut_Code] -side left -padx 2 -pady 2
+pack [button .b.r.t.b6 -image icopy -command Editor_Copy_Code] -side left -padx 2 -pady 2
+pack [button .b.r.t.b7 -image ipaste -command Editor_Paste_Code] -side left -padx 2 -pady 2
+pack [label .b.r.t.sep2 -width 2] -side left
+pack [button .b.r.t.b8 -image ifind -command Editor_Search_Form] -side left -padx 2 -pady 2
+pack [label .b.r.t.sep3 -width 2] -side left
+pack [button .b.r.t.b9 -image icomment -command {.b.r.editor insert [.b.r.editor index insert] "# "}] -side left -padx 2 -pady 2
+pack [button .b.r.t.b10 -image icolor -command Editor_Choose_Color] -side left -padx 2 -pady 2
+pack [button .b.r.t.b11 -image ifont -command selectfont] -side left -padx 2 -pady 2
+pack [button .b.r.t.bimg -image ipict -command Form_Icons_Manager] -side left -padx 2 -pady 2
+pack [button .b.r.t.b12 -image iwidget -command Form_Tk] -side left -padx 2 -pady 2
+pack [button .b.r.t.b13 -image iparam -command Form_Theme] -side left -padx 2 -pady 2
+pack [button .b.r.t.bquit -text "Close editor" -image iquit -compound left -command {destroy .b.r.editor ; destroy .b.r.t ; destroy .b.r.scroll}] -side right -padx 2 -pady 2
+pack [label .b.r.t.rc -bg white -fg black -font "System 12" -text "0.0"] -side right
+}
+
+# Create text editor
+proc Form_Editor_Code_Writer {} {
+global ecolor
+text .b.r.editor -bg [lindex $ecolor 1] -fg [lindex $ecolor 2] -yscrollcommand ".b.r.scroll set" -setgrid true -width 40 -height 10 -wrap word
+scrollbar .b.r.scroll -command ".b.r.editor yview"
+pack .b.r.scroll -side right -fill y
+pack .b.r.editor -expand 1 -fill both
+focus .b.r.editor
+
+# define tag color
+.b.r.editor configure -insertbackground  [lindex $ecolor 2] -font "System 12"
+.b.r.editor tag configure cbg -foreground [lindex $ecolor 1] -font "System 12"
+.b.r.editor tag configure cfg -foreground [lindex $ecolor 2] -font "System 12"
+.b.r.editor tag configure ckeyword -foreground [lindex $ecolor 3] -font "System 12 bold"
+.b.r.editor tag configure coperator -foreground [lindex $ecolor 4] -font "System 14"
+.b.r.editor tag configure ccomment -foreground [lindex $ecolor 5] -font "System 11"
+.b.r.editor tag configure cargument -foreground [lindex $ecolor 6] -font "System 12"
+.b.r.editor tag configure cconstant -foreground [lindex $ecolor 7] -font "System 12"
+.b.r.editor tag configure cwidget -foreground [lindex $ecolor 8] -font "System 12 bold"
+.b.r.editor tag configure cevent -foreground [lindex $ecolor 9] -font "System 12 bold"
+.b.r.editor tag configure cline -background [lindex $ecolor 9]
+
+# open file to edit
+set file_data "hoho"
+.b.r.editor insert end $file_data
+set fromIdx 0.0
+after 100
+list colorize .b.r.editor $fromIdx
+
+bind .b.r.editor <1> {	set a [.b.r.editor index insert]; .b.r.t.rc configure -text $a
+								.b.r.editor tag remove cline 1.0 end
+}
+	
+bind .b.r.editor <KeyRelease> {set a [.b.r.editor index insert]; .b.r.t.rc configure -text $a
+	set mykey %K
+	switch $mykey {
+		Return {colorize .b.r.editor 0.0}
+		space {global tw; set tw "" }
+		KP_Enter {global tw; set tw "" }
+		BackSpace {global tw; set tw [string range $tw 0 end-1]}
+		KP_Subtraminus {global tw;set d "-"}
+		KP_Subtract {global tw; set d "-"}
+		quotedbl { set newidx [ Remove_text [.b.r.editor index insert] 1 ] ; .b.r.editor insert $newidx "\x22\x22" ;
+				.b.r.editor mark set insert [Backward_Cursor [.b.r.editor index insert] 1]}
+		bracketleft { set newidx [ Remove_text [.b.r.editor index insert] 1 ] ; .b.r.editor insert $newidx "\x5B\x5D";
+				.b.r.editor mark set insert [Backward_Cursor [.b.r.editor index insert] 1]}
+		braceleft { ; set newidx [ Remove_text [.b.r.editor index insert] 1] ; .b.r.editor insert $newidx "\x7B\x7D";
+				.b.r.editor mark set insert [Backward_Cursor [.b.r.editor index insert] 1]}
+		Down { set max [.hlp.l size]; set idx [.hlp.l get active] ;puts "idx est  $idx et max est $max"; .hlp.l select clear 0 end;
+ 				if {$idx < $max} {set idx [incr idx] ;.hlp.l select set $idx $idx} }
+		Up {}
+		default {global tw; set tw $tw$mykey}
+
+	}
+}
+}
+
+
+proc Get_Line {c} {
+	set a [split $c "."]
+	return [lindex $a 0]
+}
+
+# Remove text in editor from 'where' and 'how' many characters.
+proc Remove_text {where how} {
+	set oldidx [ Backward_Cursor $where $how ]
+	set newidx [.b.r.editor index insert]
+	.b.r.editor delete  $oldidx $newidx;
+	return $oldidx
+}
+
+# Move cursor of editor forward on the same line
+proc Forward_Cursor { origin how } {
+	set c [split $origin .]
+	set b [expr [lindex $c 1] + $how]
+	set t0 [lindex $c 0]; set t1 "."; set newidx $t0$t1$b
+	return $newidx
+}
+
+# Move cursor from editor Backward on the same line
+proc Backward_Cursor { origin how } {
+	set c [split $origin .]
+	set b [expr [lindex $c 1] - $how]
+	set t0 [lindex $c 0]; set t1 "."; set newidx $t0$t1$b
+	return $newidx
+}
+
+# Colorize code
+proc colorize {w fromIdx} {
+    set toIdx [$w index insert]    
+    # Keywords
+    set kw [list "proc " "lset " "set " "puts " "close " "global " "wm " "place " "pack " "toplevel " "expr " \
+			"string " "cat " "open " "read " "if " 	"for " "foreach " "while " " add" " configure" \
+			"else" "return" "require " "package " "source " "list " " colorize" "after " "cascade " "command " \
+			"focus " "split " "lindex " "image " "create " " close" "eval "]
+	foreach j $kw {
+		 set idxList [$w search -all $j $fromIdx $toIdx]
+    foreach idx $idxList { $w tag add ckeyword $idx "$idx + [string length $j]chars" }
+}
+    
+    # Operators and symbols
+    set opsymbol [list "{" "}" "+" "/" "\x5B" "\x5D" "." "," "=" "&" ";" "|" ]
+    foreach e $opsymbol { 
+		set idxList [$w search -all $e $fromIdx $toIdx]
+		foreach idx $idxList { $w tag add coperator $idx "$idx + [string length $e]chars" }
+	}
+    
+    # widgets
+    set wname  [list "labelframe " "label " "button " "entry " "listbox " "frame " "radiobutton " "text " "scrollbar "\
+    "ttk::combobox " "ttk::treeview" "canvas" "menu " "tk_chooseColor " "tk_optionMenu " "ttk::frame " "checkbutton " \
+    "scale " "tk_messageBox "]
+    foreach d $wname { 
+		set idxList [$w search -all $d $fromIdx $toIdx]
+		foreach idx $idxList { $w tag add cwidget $idx "$idx + [string length $d]chars" }
+	}
+    
+    # constants
+    set constant [list "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" " yes" " no" \
+    " true" " false" " x" " y" " both" " left" " right" " top" " bottom" " word" " photo" " create"]
+    foreach f $constant {
+		    set idxList [$w search -all $f $fromIdx $toIdx]
+    foreach idx $idxList { $w tag add cconstant $idx "$idx + [string length $f]chars" }
+	}
+	
+	# colors
+	set wcolor [list " black" " white" " blue" " yellow" " red"]
+
+	
+	# colors hexadecimal
+	set chex [list "#0" "#1" "#2" "#3" "#4" "#5" "#6" "#7" "#8" "#9" "#A" "#B" "#C" "#D" "#E" "#F" ]
+		   foreach i $chex {
+		    set idxList [$w search -all $i $fromIdx $toIdx]
+    foreach idx $idxList { $w tag add cconstant $idx "$idx + 7chars" }
+	}
+
+    # Arguments
+    set myargs [list " -text" " -x" " -y" " -width" " -height" " -textvariable" " -image" " -command" " -title " \
+					" geometry " " -side" " -fill" " -fg" " -bg" " -bd" " -expand" " -padx" " -pady" \
+					" -menu" " -underline" " -setgrid" " -wrap" " -id" " -tags"  " attributes" " iconphoto" \
+					" -shrink" " -subsample" " -relief" " -parent" " -background" " -foreground" \
+					" -type" " -icon" " -message" " -row" " -column" " -sticky" " title" " -compound"\
+		" -relief" " -file" " -accelerator" ]
+
+
+	foreach g $myargs {
+		set idxList [$w search -all $g $fromIdx $toIdx]
+		foreach idx $idxList { $w tag add cargument $idx "$idx + [string length $g]chars" }
+	}
+
+	# events
+	set wevent [list "bind " "<1>" " <Double-1>" " <KeyPress>" " <KeyRelease>" " <Return>" "<<ListboxSelect>>" "destroy "]
+	foreach h $wevent {
+		set idxList [$w search -all $h $fromIdx $toIdx]
+    foreach idx $idxList { $w tag add cconstant $idx "$idx + [string length $h]chars" }
+	}
+
+
+  # Comments
+    set idxList [$w search -all "# " $fromIdx $toIdx]
+    foreach idx $idxList {
+        $w tag add ccomment $idx "$idx lineend"  
+    }
+} 
+
+# Save procedure modifications
+proc Editor_Save {} {
+global idproj idproc procname
+set mycode [.b.r.editor get 0.0 end]
+set db "./db/code.db"
+sqlite3 db1 $db
+db1 eval { UPDATE procedure SET "idproj" = $idproj,"name" = $procname, "procedurecode" = $mycode, "argument" = "" WHERE "id" = $idproc}
+db1 close
+}
+
+proc Editor_Goto_Line {} {
+	
+}
+
+
+# --------------------- CLIPBOARD MANAGEMENT ---------------------
+# Clipboard Cut
+proc Editor_Cut_Code { } {
+set owner [selection own]
+clipboard clear
+catch { set text [selection get]; clipboard append $text; $owner delete sel.first sel.last }
+}
+
+# Clipboard COPY
+proc Editor_Copy_Code { } {
+set owner [selection own]
+clipboard clear
+catch { clipboard append [selection get] }
+}
+
+# Clipboard PASTE
+proc Editor_Paste_Code { } {
+catch { set clip [selection get -selection CLIPBOARD]}
+set idx [.b.r.editor index insert]
+.b.r.editor insert $idx $clip
+}
+
+# -------------------- SEARCH CODE -----------------------------
+
+proc Editor_Search_Form { } {
+	toplevel .search  -class Dialog
+	wm transient .search .
+	wm protocol .search WM_DELETE_WINDOW "destroy .search"
+	label .search.label -text "Search:"
+	label .search.label2 -text "Replace:"
+	entry .search.entry -width 30
+	button .search.find -text "Search" -command { search }
+	button .search.replace -text "Replace" -command { replace }
+	entry .search.repl -width 30
+	button .search.dismiss -text "Cancel" -command  {destroy .search}
+	grid .search.label .search.entry .search.find -sticky ew
+	grid .search.label2 .search.repl .search.replace -sticky ew
+	grid .search.dismiss -column 1 -columnspan 2 -sticky ew	
+	bind .search.entry <Key-Return> {search}
+	focus .search.entry	
+}
+
+# Find procedure
+proc search { } {
+global get_index sel.first sel.last search_string
+focus .b.r.editor
+set search_string [.search.entry get]
+set length [string length $search_string]
+set index [.b.r.editor search -- $search_string $get_index end]
+if {$index == "" } {
+		set get_index 1.0
+		set index [.b.r.editor search -- $search_string $get_index end]
+		}
+
+if {$index != ""} {
+		catch {.b.r.editor tag remove sel sel.first sel.last}
+		.b.r.editor tag add sel $index "$index + $length chars"
+		.b.r.editor mark set insert $index
+		.b.r.editor see $index
+		set get_index "$index + 1 char"
+		} else {
+		tk_messageBox -type ok -icon info -title "Text not found" -message "Code is not founded!"
+		set get_index 1.0 
+		}
+}
+
+
+# 
+# ################################# INSERT COLORS CODE #################################
+proc Editor_Choose_Color {} {
+set c [Choose_Color]
+set idx [.b.r.editor index insert]
+.b.r.editor insert $idx "#$c"
+}
+
+
+
+# ####################### FASTDOC HELP ################################
+
+# Create fastdoc form
+proc Form_Editor_Fastdoc {} {
+
+}
+
+
+proc Fastdoc_Show {} {
+
+}
+
+
+
+# ######################## THEME CONFIGURATION ########################
+proc Form_Theme {} {
+if {[winfo exist .r.fth] == 1} {destroy .r.fth}
+ttk::frame .r.fth ; .r add .r.fth -text "Theme Editor"
+pack [frame .r.fth.frm -padx 60 -pady 60 -bg #101010] -fill both -expand 1
+pack [label .r.fth.frm.title -text "Configure editor theme" -anchor center -bg #660E14 -fg #FFFFFF] -fill x
+# theme list
+pack [ttk::treeview .r.fth.frm.tv0 ] -side left -fill y -padx 4 -pady 4
+.r.fth.frm.tv0 heading #0 -text "Select theme" -anchor center
+#  toolbar
+pack [frame .r.fth.frm.tb ] -fill x  ; # Toolbar
+pack [button .r.fth.frm.tb.bquit -text "Close editor\ntheme configuration" -image iquit -compound left  -command {destroy .r.fth}] -side right -fill y
+.r select .r.fth
+# buttons color
+pack [frame .r.fth.frm.c ] -fill both -expand 1 -side left
+pack [label .r.fth.frm.c.msg -text "Theme details" -bg #808080 -fg #FFFFFF] -fill x
+pack [labelframe .r.fth.frm.c.lbf -text " Name " ] -fill x
+pack [entry .r.fth.frm.c.lbf.name ] -fill both -expand 1 -padx 3 -pady 3
+pack [button .r.fth.frm.c.bt0 -text "Editor background" -anchor w -command {Theme_Get_Color 0}] -fill x
+pack [button .r.fth.frm.c.bt1 -text "Editor default font" -anchor w -command {Theme_Get_Color 1}] -fill x
+pack [button .r.fth.frm.c.bt2 -text "Keyword" -anchor w -command {Theme_Get_Color 2}] -fill x
+pack [button .r.fth.frm.c.bt3 -text "Operator and symbol" -anchor w -command {Theme_Get_Color 3}] -fill x
+pack [button .r.fth.frm.c.bt4 -text "Comment" -anchor w -command {Theme_Get_Color 4}] -fill x
+pack [button .r.fth.frm.c.bt5 -text "Options" -anchor w -command {Theme_Get_Color 5}] -fill x
+pack [button .r.fth.frm.c.bt6 -text "Values" -anchor w -command {Theme_Get_Color 6}] -fill x
+pack [button .r.fth.frm.c.bt7 -text "Widgets" -anchor w -command {Theme_Get_Color 7}] -fill x
+# Preview
+pack [frame .r.fth.frm.r ] -fill both -expand 1 -side left
+pack [label .r.fth.frm.r.msg -text "Preview theme" -bg #808080 -fg #FFFFFF] -fill x -padx 3
+pack [frame .r.fth.frm.r.bg] -fill both -expand 1 -padx 5 -pady 5
+pack [label .r.fth.frm.r.bg.comment -text "# This is a commentary" -anchor w] -fill x
+pack [frame .r.fth.frm.r.bg.line ] -fill x
+pack [label .r.fth.frm.r.bg.line.c0 -text "pack " -anchor w] -side left
+pack [label .r.fth.frm.r.bg.line.c1 -text "\x5B" -anchor w] -side left
+pack [label .r.fth.frm.r.bg.line.c2 -text "label " -anchor w] -side left
+pack [label .r.fth.frm.r.bg.line.c3 -text "." -anchor w] -side left
+pack [label .r.fth.frm.r.bg.line.c4 -text "myframe " -anchor w] -side left
+pack [label .r.fth.frm.r.bg.line.c5 -text "-bg" -anchor w] -side left
+pack [label .r.fth.frm.r.bg.line.c6 -text "#4A5D32 " -anchor w] -side left
+pack [label .r.fth.frm.r.bg.line.c7 -text "-text " -anchor w] -side left
+pack [label .r.fth.frm.r.bg.line.c8 -text "\x22 mytext \x22 " -anchor w] -side left
+pack [label .r.fth.frm.r.bg.line.c9 -text "\x5D " -anchor w] -side left
+pack [label .r.fth.frm.r.bg.line.c10 -text " -fill " -anchor w] -side left
+pack [label .r.fth.frm.r.bg.line.c11 -text "x" -anchor w] -side left
+Theme_Refresh_List
+Theme_Refresh_Interface
+}
+
+# Refresh theme when change color
+proc Theme_Refresh_Interface {} {
+global ecolor
+.r.fth.frm.c.bt0 configure -bg [lindex $ecolor 1]
+.r.fth.frm.c.bt1 configure -bg [lindex $ecolor 2]
+.r.fth.frm.c.bt2 configure -bg [lindex $ecolor 3]
+.r.fth.frm.c.bt3 configure -bg [lindex $ecolor 4]
+.r.fth.frm.c.bt4 configure -bg [lindex $ecolor 5]
+.r.fth.frm.c.bt5 configure -bg [lindex $ecolor 6]
+.r.fth.frm.c.bt6 configure -bg [lindex $ecolor 7]
+.r.fth.frm.c.bt7 configure -bg [lindex $ecolor 8]
+.r.fth.frm.r.bg configure -bg [lindex $ecolor 1]  ; # preview bg color
+.r.fth.frm.r.bg.comment configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 5] ; # comments
+.r.fth.frm.r.bg.line configure -bg [lindex $ecolor 1]
+.r.fth.frm.r.bg.line.c0 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 3] ; # keyword
+.r.fth.frm.r.bg.line.c1 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 2] ; # 
+.r.fth.frm.r.bg.line.c2 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 8] ; # 
+.r.fth.frm.r.bg.line.c3 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 4] ; # 
+.r.fth.frm.r.bg.line.c4 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 3] ; # 
+.r.fth.frm.r.bg.line.c5 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 6] ; # 
+.r.fth.frm.r.bg.line.c6 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 7] ; # 
+.r.fth.frm.r.bg.line.c7 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 6] ; # 
+.r.fth.frm.r.bg.line.c8 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 2] ; # 
+.r.fth.frm.r.bg.line.c9 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 4] ; # 
+.r.fth.frm.r.bg.line.c10 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 6] ; # 
+.r.fth.frm.r.bg.line.c11 configure -bg [lindex $ecolor 1] -fg [lindex $ecolor 7] ; # 
+}
+
+# Load theme from database 
+proc Theme_Refresh_List {} {
+set sql "SELECT * from themes"
+sqlite3 db1 "./db/proj.db"
+.r.fth.frm.tv0  delete [.r.fth.frm.tv0 children {}]
+db1 eval $sql {.r.fth.frm.tv0  insert {} end -id $id -text "$name" -image ipalet -tags ttk}
+db1 close
+}
+
+# get color from colorchooser
+proc Theme_Get_Color {idx} {
+global ecolor
+set mycolor [Choose_Color]
+lset ecolor [expr $idx + 1] $mycolor
+Theme_Refresh_Interface
+if {[winfo exist .r.fth.frm.c.bsave] !=1 } {
+pack [button .r.fth.frm.c.bsave -text "Save new theme" -image isave -compound left -command Theme_Add_Database] -fill x
+}
+}
+
+# Add new theme in theme database
+proc Theme_Add_Database {} {
+set t [.r.fth.frm.c.lbf.name get]
+if {$t == ""} {tk_messageBox -type ok -icon info -title Warning -message "Name must not be empty !"} {
+sqlite3 db1 "./db/proj.db"
+set myname [.r.fth.frm.c.lbf.name get]
+set a0 [.r.fth.frm.c.bt0 cget -bg]
+set a1 [.r.fth.frm.c.bt1 cget -bg]
+set a2 [.r.fth.frm.c.bt2 cget -bg]
+set a3 [.r.fth.frm.c.bt3 cget -bg]
+set a4 [.r.fth.frm.c.bt4 cget -bg]
+set a5 [.r.fth.frm.c.bt5 cget -bg]
+set a6 [.r.fth.frm.c.bt6 cget -bg]
+set a7 [.r.fth.frm.c.bt7 cget -bg]
+db1 eval { INSERT INTO themes ("name","background","foreground","keyword","operator","commentary","argument","widget","highlight") \
+		VALUES ($myname,$a0,$a1,$a2,$a3,$a4,$a5,$a6,$a7) }
+db1 close
+destroy .r.fth.frm.c.bsave
+}
+after 300
+Theme_Refresh_List
+}

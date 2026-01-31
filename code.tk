@@ -1,0 +1,38 @@
+# All procedures to insert code in fast menu
+# Made by fabien 26 september 2025 in tcl tk
+
+proc p_Grid {m} {
+global mycode
+set mycode "grid "
+$m add command -label "grid " -image iedit -compound left
+}
+
+proc p_Pack {m} {
+global mycode	
+$m add command -label "pack " -image iedit -compound left -command {set mycode "pack "}
+}
+
+proc p_Place {m} {
+global mycode	
+set mycode "place "
+$m add command -label "place " -image iedit -compound left
+}
+
+proc p_Bracket {m} {
+global mycode
+set mycode "$mycode\x5B\x5D"
+$m add command -label "\x5B\x5D" -image iedit -compound left -command p_Insert_Code
+}
+
+
+proc p_Tk_Base {} {
+	
+}
+
+proc p_Insert_Code {} {
+global mycode
+puts $mycode
+}
+
+
+

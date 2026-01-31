@@ -1,0 +1,19 @@
+
+# Form about
+proc Form_About_Open {} {
+if {[winfo exist .fabout] == 0} {
+toplevel .fabout
+wm iconphoto .fabout iinfo
+wm title .fabout "About IDEtk..."
+wm geometry .fabout 500x500+100+100
+pack [frame .fabout.top -padx 4 -pady 4 -bg #3F7744] -fill x
+pack [button .fabout.top.bquit -text "Close" -image iquit -compound left -command {destroy .fabout}] -side right
+pack [label .fabout.t -text "\n About IdeTK \n" -font "serif 24" -image iplume -compound left -bg #3F7744 -fg white ] -fill x
+pack [label .fabout.d -text "IdeTK is a visual code editor to
+	 develop rapid applications and scripts in tcl TK.
+	 Free redistribuable, projet started in september 2024.
+	 Enjoy!
+	 " -bg white] -fill both -expand 1
+pack [label .fabout.f -text " contact : fabien.toniutti@free.fr \n web : www.tcltk.fr" -font "serif 10" -bg #3F7744 -fg white ] -fill x
+}
+}
