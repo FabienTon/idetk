@@ -21,7 +21,7 @@ tcl sqlite
 tkpng
 
 # Download
-[Direct link to las ZIP code](https://github.com/FabienTon/idetk/releases/latest/download/main.zip)
+[Direct link to last project (.zip)](https://github.com/FabienTon/idetk/archive/refs/heads/main.zip)
 
 # screenshots
 ![Main screen](screen/idetk.jpg)
