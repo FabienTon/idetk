@@ -1,4 +1,4 @@
-# IdeTK ,an pure tcl tk made IDE for tcl tk programming language.
+# IdeTK ,a pure tcl tk made IDE for tcl tk programming language.
 ![picture](screen/idetk.jpg)
 
 # Description
