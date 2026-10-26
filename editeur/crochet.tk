@@ -1,0 +1,67 @@
+package require Tk
+
+# Création du widget Text
+text .t -width 50 -height 10
+pack .t
+
+# Configuration du tag violet pour les crochets
+.t tag configure violet -foreground violet
+
+# Fonction pour colorier le crochet ouvert correspondant
+proc colorerCrochetOuvert {w} {
+    # Récupérer la position actuelle du curseur
+    set pos [$w index insert]
+
+    # Récupérer le caractère à gauche du curseur
+    set char_before [$w get "$pos -1c" "$pos"]
+
+    # Si c'est un crochet fermant, chercher le crochet ouvrant correspondant
+    if {[string equal $char_before "]"} {
+        # Début de la ligne
+        set start [$w index "$pos -1c linestart"]
+        set end   [$w index "insert -1c"]
+
+        # Chercher à gauche pour le crochet ouvert correspondant
+        set count 1
+        while {$count > 0 && [string length $start] > 0} {
+            set start [$w index "$start -1c"]
+            set char_at_start [$w get $start $start]
+            if {[string equal $char_at_start "["]} {
+                incr count
+            } elseif {[string equal $char_at_start "]"} {
+                incr count -1
+            }
+        }
+
+        # Si on a trouvé un crochet ouvrant, on le colore en violet
+        if {$count == 0} {
+            $w tag add violet $start $end
+        }
+    } elseif {[string equal $char_before "["]} {
+        # Si c'est un crochet ouvrant, chercher le crochet fermant correspondant
+        set start [$w index "$pos +1c"]
+        set end   [$w index "insert +1c lineend"]
+
+        # Chercher à droite pour le crochet fermant
+        set count 1
+        while {$count > 0 && [string length $end] > 0} {
+            set end [$w index "$end +1c"]
+            set char_at_end [$w get $end $end]
+            if {[string equal $char_at_end "]"} {
+                incr count
+            } elseif {[string equal $char_at_end "["]} {
+                incr count -1
+            }
+        }
+
+        # Si on a trouvé un crochet fermant, on le colore en violet
+        if {$count == 0} {
+            $w tag add violet $start $end
+        }
+    }
+}
+
+# Détection du mouvement du curseur
+bind .t <KeyRelease> {
+    colorerCrochetOuvert %W
+}

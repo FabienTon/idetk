@@ -1,0 +1,360 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Ide Tk help</title>
+  </head>
+  <body>
+    <table cellspacing="2" cellpadding="2" border="0" width="100%"
+      align="center">
+      <tbody>
+        <tr>
+          <td bgcolor="#3f7744" width="150" valign="top" height="150"
+            align="center"><img moz-do-not-send="true" src="icon.png"
+              alt="" width="128" height="128"><br>
+          </td>
+          <td bgcolor="#3f7744" valign="middle" align="center"><font
+              color="#ffffff"><b><font size="+3">Ide TK Help</font></b></font><br>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
+    <table cellspacing="2" cellpadding="2" border="0" width="90%"
+      align="center">
+      <tbody>
+        <tr>
+          <td bgcolor="#cccccc" valign="top" align="center"><a
+              moz-do-not-send="true" href="#use">&nbsp;How to use IdeTK</a><br>
+          </td>
+          <td bgcolor="#cccccc" valign="top" align="center"><a
+              moz-do-not-send="true" href="#project">Project management</a><br>
+          </td>
+          <td bgcolor="#cccccc" valign="top" align="center">&nbsp;<a
+              moz-do-not-send="true" href="#code">Code Editor</a><br>
+          </td>
+          <td bgcolor="#cccccc" valign="top" align="center"><a
+              moz-do-not-send="true" href="#key">Application key
+              shortcuts</a><br>
+          </td>
+          <td bgcolor="#cccccc" valign="top" align="center"><a
+              moz-do-not-send="true" href="#about">About me</a><br>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <b><font size="+2"><br>
+        <br>
+        Introduction<br>
+        <br>
+      </font></b>IdeTK is a code editor to develop script and
+    applications in tcl tk scripting language.<br>
+    This software was started in september 2024 and after open ACS
+    conference in Vienna in July 2024.<br>
+    Many efforts have be done to have one application to :<br>
+    <ul>
+      <li>Manage complete tcl tk projects</li>
+      <li>Code editor with access to fast commands</li>
+      <li>One simple and clear interface to enjoy with Tcl tk language.</li>
+    </ul>
+    <p><font size="+2"><b>Requirement</b></font><br>
+    </p>
+    <p>This software is developed on linux mint. I didn't try on
+      windows, mac, or android.</p>
+    <p>Idetk is made with tcl tk 8.6, so, you need to have these package
+      present on your computer :<br>
+    </p>
+    <ul>
+      <li>tcl package</li>
+      <li>tk package</li>
+      <li>sqlite3 for tcl</li>
+      <li>png package for tk</li>
+      <li>img package for tk<br>
+      </li>
+    </ul>
+    <p><font size="+2"><b>Download&nbsp; and install IdeTK</b></font><br>
+    </p>
+    <p>To download, go to my website and click on this link to download
+      last version.<br>
+    </p>
+    <p>To install, you need to unzip folder where you want.</p>
+    <p>To execute program, double click on idetk.sh bash script, or open
+      terminal on linux and write :<br>
+    </p>
+    <p><font color="#ffff33"><font color="#cc0000">./idetk.sh&nbsp;&nbsp;&nbsp;&nbsp;</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <br>
+    </p>
+    <p><b><font size="+2"><a name="use"></a>How to use IdeTK</font></b><br>
+    </p>
+    <p>First execution, you will have form as this :<br>
+    </p>
+    <img moz-do-not-send="true" src="01.jpg" alt="" width="800"
+      height="429">
+    <p><br>
+    </p>
+    <p><br>
+    </p>
+    <p><font size="+1"><b><font size="+2">Menu description</font><br>
+        </b></font></p>
+    <p><font size="+1"><b>Menu File :<br>
+        </b></font></p>
+    <ul>
+      <li>File -&gt; <b>New project</b> : Create a new Tcl, Tcltk
+        project</li>
+      <li>File -&gt; <b>Open project </b>: Open project file tk
+        project (pf8.proj file)</li>
+      <li>File -&gt;<b> Save project </b>: Save current projet in
+        pf8.proj file in the application folder</li>
+      <li>File -&gt; <b>Save project As</b> : Create new folder and put
+        inside all files from project, and create pf8.proj file</li>
+      <li>File -&gt; Reload project : Reload all folder and pf8.proj
+        file.</li>
+      <li>File -&gt; <b>quit IdeTK</b> : Exit IdeTK application</li>
+    </ul>
+    <p><b>Menu Edition</b><br>
+    </p>
+    <ul>
+      <li><b>Edit -&gt; Undo</b> : Undo function for editor<br>
+      </li>
+      <li><b>Edit -&gt; Redo</b> : Redo function for editor<br>
+      </li>
+      <li><b>Edit -&gt; Copy </b>: Copy function for editor<br>
+      </li>
+      <li><b>Edit -&gt; Cut</b> : Cut function for editor<br>
+      </li>
+      <li><b>Edit -&gt; Paste</b> : Paste function for editor<br>
+      </li>
+      <li><b>Edit -&gt; Got to line</b> : move cursor to line<br>
+      </li>
+      <li><b>Edit -&gt; Close editor</b> : Close editor form<br>
+      </li>
+      <li><b>Edit -&gt; Lock this file</b> : Lock in read only selected
+        file in editor<br>
+      </li>
+    </ul>
+    <p><b>Menu Project</b><br>
+    </p>
+    <ul>
+      <li><b>Project -&gt; Execute</b> : Execute this command : wish
+        main.tk file in your application folder<br>
+      </li>
+      <li><b>Project -&gt;Translate</b> : translate your application
+        using msgcat tk plugin<br>
+      </li>
+      <li>Project -&gt;Generate</li>
+      <li><b>Project -&gt;Generate</b> -&gt; Source package :&nbsp;
+        generate Zip of your project folder<br>
+      </li>
+      <li><b>Project -&gt;Publish on the web</b> : send on internet your
+        project for community<br>
+      </li>
+      <li><b>Project -&gt;Clean</b> : remove temporary files inside your
+        project folder<br>
+      </li>
+      <li><b>Project -&gt;Refresh</b> : refresh code in your source code
+        files<br>
+      </li>
+      <li><b>Project -&gt;Properties</b> : Open form for properties of
+        your project<br>
+      </li>
+    </ul>
+    <p><b>Menu Tools</b><br>
+    </p>
+    <ul>
+      <li><b>Tools -&gt; Find </b>: Find text function for editor</li>
+      <li><b>Tools -&gt; Replace</b> : Replace function for editor</li>
+      <li><b>Tools -&gt; Explore project</b> : Open file explorer<br>
+      </li>
+      <li><b>Tools -&gt; Send by mail</b> : send zip orject by mail<br>
+      </li>
+      <li><b>Tools -&gt; Keyboard shorcuts</b> : Open form to see
+        shortcut<br>
+      </li>
+      <li><b>Tools -&gt; IdeTK preferences</b> : Open form to manage
+        IdeTK interface<br>
+      </li>
+    </ul>
+    <p><b>Menu ?</b></p>
+    <ul>
+      <li><b>?-&gt; Help index </b>: Open web browser to see tcl
+        tk&nbsp; official documentation offline<br>
+      </li>
+      <li><b>?-&gt; Tip of the day </b>: show tips of the day when
+        start ideTK<br>
+      </li>
+      <li><b>?-&gt; IDE tk help</b> : This help<br>
+      </li>
+      <li><b>?-&gt; About IdeTK</b> : Informations about IdeTK dveloper.<br>
+      </li>
+    </ul>
+    <p><b><font size="+2">Toolbar description</font></b><br>
+    </p>
+    <img moz-do-not-send="true" src="maintoolbar.jpg" alt="" width="229"
+      height="65"><br>
+    <br>
+    Icon <i>new project </i>: Create a new Tcl, Tcltk project<br>
+    Icon <i>Open project</i>: Open project file tk project (<b>pf8.proj</b>
+    file)<br>
+    Icon <i>Save project</i>: Save current projet in <b>pf8.proj </b>file
+    in the application folder<br>
+    Icon <i>Save As project</i>: Create new folder and put inside all
+    files from project, and create pf8.proj file<br>
+    Icon <i>execute</i> : Execute this command : wish main.tk file in
+    your application folder<br>
+    <br>
+    <br>
+    <font size="+2"><b><a name="project"></a>Projet management<br>
+        <br>
+      </b></font>With IdeTK you have complete projet management.<br>
+    it means, All files, source code tk file, photos, videos, documents
+    are in one folder with name of your project.<br>
+    In this folder you will find minimum 2 files :<br>
+    <ul>
+      <li>File <b><font color="#006600">pf8.proj</font></b> :
+        configuration file (as .ini file on windows).</li>
+      <li>File <font color="#006600"><b>main.tk</b></font> : First tk
+        source code file. <br>
+      </li>
+    </ul>
+    <p>pf8.proj file has six lines :<br>
+    </p>
+    <ul>
+      <li>Name of your project</li>
+      <li>start source code file (generaly main.tk)</li>
+      <li>Description of your project (One phrase to resume)</li>
+      <li>default language of your project.<br>
+      </li>
+      <li>translate : 0 if project will not be translated, 1 if projecti
+        translated in another language.</li>
+      <li>version of your project (change when you create archive source
+        code in menu generate)<br>
+      </li>
+    </ul>
+    <font size="+2"><b><font size="+1">Create project</font></b></font><br>
+    <br>
+    When you click on New project, one form is open as bellow:<br>
+    <br>
+    <img moz-do-not-send="true" src="newproject.jpg" alt="" width="416"
+      height="336"><br>
+    <br>
+    <ol>
+      <li>Select kind of project : Graphic with tk library or command
+        line ,simple tcl project.<br>
+      </li>
+      <li>Select path of new folder will be created</li>
+      <li>Give name of your project (name of project folder without
+        space)</li>
+    </ol>
+    <p>Click Cancel (Annuler in French)<br>
+      Click Ok to validate.<br>
+    </p>
+    <p>One folder will be created in your selected path and in this
+      folder (name of your project) will be created two files :<br>
+    </p>
+    <ul>
+      <li>pf8.proj : project file tk version 8 project who will be your
+        project configuration file.</li>
+      <li>main.tk : an empty tk file where you will write your tcl tk
+        code. (Note all source code files need to have .tk extention to
+        be recognize by IdeTK</li>
+    </ul>
+    <p><br>
+    </p>
+    <p>For our example bellow, i open<font color="#ff0000"><b> pf8.proj
+        </b></font>file inside IdeTK project .<br>
+    </p>
+    <p>When project is opened, you have this form now :<br>
+    </p>
+    <img moz-do-not-send="true" src="main.jpg" alt="" width="748"
+      height="487">
+    <p><br>
+      <b><font size="+2"><a name="code"></a>Code editor</font></b><br>
+    </p>
+    <p>On the left you have list of source code files.<br>
+      double click on IDEpref.tk and editor will be launched as this one
+      :<br>
+    </p>
+    <img moz-do-not-send="true" src="02.jpg" alt="" width="800"
+      height="423"><br>
+    <p><br>
+      you can now edit your code.<br>
+    </p>
+    <p><font size="+2"><b>Using editor Toolbar</b></font><br>
+    </p>
+    <p><img moz-do-not-send="true" src="tbeditor.jpg" alt=""
+        width="1146" height="99"><br>
+    </p>
+    <p>This toolbar has shortcut to increase your productivity when you
+      code .<br>
+      Let show what is details of this toolbar<br>
+    </p>
+    <ul>
+      <li>First group of icons <b>create,</b> <b>open,</b> <b>save</b>,
+        and <b>save as </b>your tcl tk code inside edition</li>
+      <li>2nd group of icons <b>cut</b>, <b>copy</b> and <b>paste</b>
+        selected code</li>
+      <li>Magnify icon allows you to find or replace text code</li>
+      <li>4th group of icons works like this</li>
+    </ul>
+    <ol>
+      <li><b>sharp icon</b> : insert comment line in editor (this line
+        will be validated when you will push <b>ENTER</b><br>
+      </li>
+      <li><b>colored circle</b> : Open form to choose and insert color
+        hexadecimal code in editor</li>
+      <li><b>Font</b> : Open form to Choose and insert font type (font,
+        size, bold, etc..) inside editor.</li>
+      <li><b>Widget</b> : Open form to Insert code of your widget
+        created inside creation form.</li>
+    </ol>
+    <ul>
+      <li>5th group of button insert pure code inside editor:</li>
+    </ul>
+    <ol>
+      <li><b>proc</b> : insert procedure and brackets</li>
+      <li><b>if</b> : insert : if and bracket</li>
+      <li><b>else</b> : insert else and brackets</li>
+      <li><b>foreach</b> : insert foreach and brackets</li>
+      <li><b>for</b> : insert for and brackets</li>
+      <li><b>while</b> : insert while and brackets</li>
+    </ol>
+    <p><br>
+    </p>
+    <p><font size="+2"><b><a name="key"></a>Application key shortcut<br>
+        </b></font></p>
+    <p>chapter will arive in a few time...<font size="+2"><br>
+        <b></b></font> <br>
+    </p>
+    <p><b><font size="+2"><a name="about"></a>About me<br>
+        </font></b></p>
+    <p>I'm a French simple worker in agriculture field , living in the
+      south of France, and my hobbie is to program on Linux since 2006.<br>
+      &nbsp;i discovered tcl tk in 2021 and i changed completely
+      programming language to try tcl tk because this language is :<font
+        size="+2"><font size="-1"><br>
+        </font></font> </p>
+    <ul>
+      <li>Simple and fast to learn.</li>
+      <li>Powerfull and compatible with a lot of platform (linux,
+        mac,windows, android, Haiku, etc...)</li>
+      <li>Developers team is very active and tcl tk 9 arrive in a few
+        time.<br>
+      </li>
+    </ul>
+    <p>I went to openACS conference about tcl tk in Vienna, and i have
+      met great peoples there who gave me 'peach' to run in this
+      adventure.<br>
+      Thanks a lot for this motivation.<br>
+      Since this time, i have created French website www.tcltk.fr with
+      many resources, software from the net and some i develop myself.<br>
+    </p>
+    <p>What tcl tk need ? A complete IDE to develop <i>'fastly and
+        furiously</i>' a lot of scripts, programs and others...<br>
+    </p>
+    <p>Thanks for help from team, and long life to tcl tk !</p>
+    <p>For any comments or suggests, Mail here: <i>fab<b>i</b>en.toniutti<b>@</b></i>fr<i>ee<b>.</b>fr</i>
+      (French, English, Russian Language are welcome)<br>
+      ;-)<br>
+    </p>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+package require Tk
+
+text .t -width 50 -height 10
+pack .t
+
+# Définir un tag vert
+.t tag configure vert -foreground green
+
+# Fonction pour colorier la ligne si le premier caractère est un dièse
+proc colorerLigne {w} {
+    # Récupérer l'index du début de la ligne courante
+    set start [$w index "insert linestart"]
+    
+    # Récupérer le premier caractère de la ligne
+    set first_char [$w get $start "$start + 1c"]
+
+    # Si c'est un dièse, colorer toute la ligne en vert
+    if {$first_char eq "#"} {
+        set end [$w index "insert lineend"]
+        $w tag add vert $start $end
+    } else {
+        # Si ce n'est pas un dièse, retirer le tag
+        set end [$w index "insert lineend"]
+        $w tag remove vert $start $end
+    }
+}
+
+# Lier l'événement à la frappe d'une touche
+bind .t <KeyRelease> {
+    colorerLigne %W
+}

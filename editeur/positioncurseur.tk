@@ -1,0 +1,33 @@
+package require Tk
+
+# Création du widget Text
+text .t -width 50 -height 10
+pack .t
+
+# Variable pour stocker la position du curseur
+set cursor_position ""
+
+# Fonction pour récupérer la position du curseur après un clic
+proc get_cursor_position {w} {
+    # Récupérer la position du curseur avant le clic
+    set pos_before_click [$w index insert]
+    
+    # Si la position est juste avant un caractère, on ajuste pour obtenir la position après
+    set line_index [lindex [split $pos_before_click .] 0]  ;# extraire le numéro de ligne
+    set col_index [lindex [split $pos_before_click .] 1]  ;# extraire la colonne
+    
+    # Créer l'index après le curseur
+    set pos_after_click "$line_index.$[expr {$col_index+1}]"
+    
+    # Mettre à jour la variable globale
+    global cursor_position
+    set cursor_position $pos_after_click
+
+    # Afficher la position dans la console
+    puts "Position du curseur après le clic : $cursor_position"
+}
+
+# Lier l'événement de clic de souris (clic gauche) pour récupérer la position
+bind .t <Button-1> {
+    get_cursor_position %W
+}

@@ -1,0 +1,39 @@
+package require Tk
+
+text .t -width 40 -height 10
+pack .t
+
+.t tag configure rouge -foreground red
+
+proc verifierMot {w} {
+    set start [$w index "insert -1c wordstart"]
+    set end   [$w index "insert -1c wordend"]
+
+    set mot [$w get $start $end]
+
+    if {$mot eq "tata"} {
+        $w tag add rouge $start $end
+    }
+}
+
+proc enleverCouleur {w} {
+
+    set start [$w index "insert -1c wordstart"]
+    set end   [$w index "insert -1c wordend"]
+
+    $w tag remove rouge $start $end
+}
+
+# espace
+bind .t <space> {
+    verifierMot %W
+    %W insert insert " "
+    break
+}
+
+# backspace
+bind .t <BackSpace> {
+    %W delete insert-1c
+    enleverCouleur %W
+    break
+}
